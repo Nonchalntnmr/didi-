@@ -15,6 +15,14 @@ const hairstyles = ["short", "medium", "long", "buzz", "curly"];
 const outfits = ["hoodie", "formal", "gym", "casual", "tech"];
 const voiceTypes = ["calm", "energetic", "deep"];
 
+const languages = [
+  "English", "Mandarin Chinese", "Hindi", "Spanish", "French",
+  "Arabic", "Bengali", "Portuguese", "Russian", "Japanese",
+  "German", "Korean", "Turkish", "Vietnamese", "Italian",
+  "Thai", "Polish", "Dutch", "Indonesian", "Tamil",
+  "Telugu", "Urdu", "Persian", "Swahili", "Ukrainian"
+];
+
 export default function AvatarCustomize() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -27,6 +35,7 @@ export default function AvatarCustomize() {
     humor_level: 5,
     verbosity_level: 5,
     voice_type: "calm",
+    language: "English",
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -49,6 +58,7 @@ export default function AvatarCustomize() {
           humor_level: data.humor_level ?? 5,
           verbosity_level: data.verbosity_level ?? 5,
           voice_type: data.voice_type || "calm",
+          language: data.language || "English",
         });
       }
     } catch (err) {
@@ -219,6 +229,26 @@ export default function AvatarCustomize() {
             <Card className="bg-[#0A0A0A] border border-white/5 rounded-sm p-6">
               <h3 className="text-base font-semibold tracking-tight mb-6" style={{ fontFamily: "Manrope, sans-serif" }}>Voice</h3>
               <SelectGrid label="Voice Type" options={voiceTypes} value={config.voice_type} onChange={(v) => setConfig({ ...config, voice_type: v })} testId="voice" />
+            </Card>
+
+            {/* Language */}
+            <Card className="bg-[#0A0A0A] border border-[#3B82F6]/10 rounded-sm p-6">
+              <h3 className="text-base font-semibold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>Language</h3>
+              <p className="text-xs text-gray-500 mb-4">Bhaiya will respond in your chosen language</p>
+              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2">
+                {languages.map((lang) => (
+                  <button
+                    key={lang}
+                    data-testid={`lang-${lang.toLowerCase().replace(/\s/g, "-")}`}
+                    onClick={() => setConfig({ ...config, language: lang })}
+                    className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-all ${
+                      config.language === lang ? "bg-[#3B82F6] text-black" : "bg-[#121212] text-gray-400 border border-white/5 hover:border-white/20"
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
             </Card>
           </motion.div>
         </div>

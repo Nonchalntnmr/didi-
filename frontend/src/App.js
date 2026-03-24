@@ -13,6 +13,7 @@ import ChallengePage from "./pages/ChallengePage";
 import RoutinesPage from "./pages/RoutinesPage";
 import WeeklySummary from "./pages/WeeklySummary";
 import ProgressCard from "./pages/ProgressCard";
+import BhaiyaWrapped from "./pages/BhaiyaWrapped";
 
 function AppRouter() {
   const location = useLocation();
@@ -34,6 +35,7 @@ function AppRouter() {
       <Route path="/routines" element={<ProtectedRoute><RoutinesPage /></ProtectedRoute>} />
       <Route path="/summary" element={<ProtectedRoute><WeeklySummary /></ProtectedRoute>} />
       <Route path="/progress" element={<ProtectedRoute><ProgressCard /></ProtectedRoute>} />
+      <Route path="/wrapped" element={<ProtectedRoute><BhaiyaWrapped /></ProtectedRoute>} />
     </Routes>
   );
 }

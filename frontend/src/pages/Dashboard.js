@@ -171,6 +171,7 @@ export default function Dashboard() {
             { icon: Skull, label: "Brutal Mode", color: "#EF4444", path: "/chat", mode: "brutal_honesty", testId: "action-brutal" },
             { icon: Rocket, label: "Future You", color: "#3B82F6", path: "/chat", mode: "future_you", testId: "action-future" },
             { icon: TrendingUp, label: "Weekly", color: "#10B981", path: "/summary", testId: "action-summary" },
+            { icon: Star, label: "Wrapped", color: "#F59E0B", path: "/wrapped", testId: "action-wrapped" },
           ].map((item, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.04 }}>
               <button

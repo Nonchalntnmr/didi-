@@ -12,6 +12,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from emergentintegrations.llm.openai import OpenAIChatRealtime
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,9 +24,16 @@ db = client[os.environ['DB_NAME']]
 
 # API keys
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+# OpenAI Realtime Voice
+realtime_chat = OpenAIChatRealtime(api_key=OPENAI_API_KEY)
+realtime_router = APIRouter()
+OpenAIChatRealtime.register_openai_realtime_router(realtime_router, realtime_chat)
+app.include_router(realtime_router, prefix="/api/v1")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -62,6 +70,15 @@ class AvatarConfig(BaseModel):
     humor_level: Optional[int] = 5
     verbosity_level: Optional[int] = 5
     voice_type: Optional[str] = "calm"
+    language: Optional[str] = "English"
+
+SUPPORTED_LANGUAGES = [
+    "English", "Mandarin Chinese", "Hindi", "Spanish", "French",
+    "Arabic", "Bengali", "Portuguese", "Russian", "Japanese",
+    "German", "Korean", "Turkish", "Vietnamese", "Italian",
+    "Thai", "Polish", "Dutch", "Indonesian", "Tamil",
+    "Telugu", "Urdu", "Persian", "Swahili", "Ukrainian"
+]
 
 class FocusStart(BaseModel):
     duration_minutes: int = 25
@@ -208,6 +225,7 @@ def build_system_prompt(avatar_config: dict, memory_context: str, mode: str) -> 
     strict = avatar_config.get("strict_level", 5)
     humor = avatar_config.get("humor_level", 5)
     verbosity = avatar_config.get("verbosity_level", 5)
+    language = avatar_config.get("language", "English")
     mode_instructions = {
         "educator": "You are in EDUCATOR mode. Break down concepts clearly. Teach thinking, not just answers. Use examples and analogies.",
         "coach": "You are in PERFORMANCE COACH mode. Build discipline. Create actionable routines. Push consistency. Be firm but encouraging.",
@@ -244,7 +262,8 @@ RULES:
 - Keep responses focused and actionable
 - Use the user's name occasionally
 - If strict level is high, be more demanding and push harder
-- If humor level is high, add wit and banter"""
+- If humor level is high, add wit and banter
+- LANGUAGE: You MUST respond in {language}. The user prefers {language}. All your responses should be in {language}."""
 
 @api_router.post("/chat")
 async def chat_endpoint(req: ChatRequest, request: Request):
@@ -808,6 +827,129 @@ async def get_progress_card(request: Request):
         "total_focus_minutes": focus_mins,
         "total_xp": total_xp,
     }
+
+# ─── LANGUAGES ───
+
+@api_router.get("/languages")
+async def get_languages():
+    return SUPPORTED_LANGUAGES
+
+# ─── BHAIYA WRAPPED ───
+
+@api_router.get("/wrapped")
+async def get_wrapped(request: Request):
+    user = await get_current_user(request)
+    uid = user["user_id"]
+    user_name = user.get("name", "there")
+    month_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    # Gather all data
+    total_msgs = await db.chat_messages.count_documents({"user_id": uid, "role": "user"})
+    month_msgs = await db.chat_messages.count_documents({"user_id": uid, "role": "user", "created_at": {"$gte": month_ago}})
+    total_goals = await db.goals.count_documents({"user_id": uid})
+    completed_goals = await db.goals.count_documents({"user_id": uid, "completed": True})
+    total_checkins = await db.checkins.count_documents({"user_id": uid})
+    month_checkins = await db.checkins.find({"user_id": uid, "created_at": {"$gte": month_ago}}, {"_id": 0}).to_list(60)
+    focus_sessions = await db.focus_sessions.find({"user_id": uid, "completed": True}, {"_id": 0}).to_list(200)
+    month_focus = [s for s in focus_sessions if s.get("started_at", "") >= month_ago]
+    focus_mins = sum(s.get("duration_minutes", 0) for s in month_focus)
+    total_focus_mins = sum(s.get("duration_minutes", 0) for s in focus_sessions)
+    challenges_done = await db.challenge_completions.count_documents({"user_id": uid})
+    month_challenges = await db.challenge_completions.count_documents({"user_id": uid, "completed_at": {"$gte": month_ago}})
+    xp_docs = await db.challenge_completions.find({"user_id": uid}, {"_id": 0, "xp": 1}).to_list(500)
+    total_xp = sum(d.get("xp", 0) for d in xp_docs)
+    # Mode usage
+    mode_msgs = await db.chat_messages.find({"user_id": uid, "role": "assistant", "mode": {"$exists": True}}, {"_id": 0, "mode": 1}).to_list(500)
+    mode_counts = {}
+    for m in mode_msgs:
+        mode = m.get("mode", "general")
+        mode_counts[mode] = mode_counts.get(mode, 0) + 1
+    top_mode = max(mode_counts, key=mode_counts.get) if mode_counts else "general"
+    # Mood analysis
+    avg_energy = 0
+    mood_counts = {}
+    if month_checkins:
+        avg_energy = round(sum(c.get("energy_level", 5) for c in month_checkins) / len(month_checkins), 1)
+        for c in month_checkins:
+            mood = c.get("mood", "neutral")
+            mood_counts[mood] = mood_counts.get(mood, 0) + 1
+    top_mood = max(mood_counts, key=mood_counts.get) if mood_counts else "neutral"
+    # Recent goals
+    recent_goals = await db.goals.find({"user_id": uid}, {"_id": 0}).sort("created_at", -1).limit(5).to_list(5)
+    goal_names = [g["title"] for g in recent_goals]
+    # Streak
+    streak = 0
+    all_checkins = await db.checkins.find({"user_id": uid}, {"_id": 0, "created_at": 1}).sort("created_at", -1).to_list(60)
+    if all_checkins:
+        today = datetime.now(timezone.utc).date()
+        for i, c in enumerate(all_checkins):
+            ca = c.get("created_at", "")
+            if isinstance(ca, str):
+                try:
+                    d = datetime.fromisoformat(ca).date()
+                except Exception:
+                    break
+            else:
+                d = ca.date() if hasattr(ca, 'date') else today
+            if d == today - timedelta(days=i):
+                streak += 1
+            else:
+                break
+    wrapped_data = {
+        "name": user_name,
+        "picture": user.get("picture", ""),
+        "period": f"{(datetime.now(timezone.utc) - timedelta(days=30)).strftime('%b %d')} - {datetime.now(timezone.utc).strftime('%b %d, %Y')}",
+        "total_messages": total_msgs,
+        "month_messages": month_msgs,
+        "total_goals": total_goals,
+        "completed_goals": completed_goals,
+        "total_checkins": total_checkins,
+        "month_checkins": len(month_checkins),
+        "focus_minutes_month": focus_mins,
+        "focus_minutes_total": total_focus_mins,
+        "focus_sessions_month": len(month_focus),
+        "challenges_month": month_challenges,
+        "challenges_total": challenges_done,
+        "total_xp": total_xp,
+        "streak": streak,
+        "avg_energy": avg_energy,
+        "top_mood": top_mood,
+        "mood_breakdown": mood_counts,
+        "top_mode": top_mode,
+        "mode_breakdown": mode_counts,
+        "recent_goals": goal_names,
+    }
+    # Generate AI wrapped summary
+    prompt = f"""Generate a "Bhaiya Wrapped" — a monthly progress report for {user_name}, styled like Spotify Wrapped but for personal growth.
+
+Stats this month:
+- {month_msgs} messages with Bhaiya ({total_msgs} all-time)
+- {completed_goals}/{total_goals} goals completed
+- {len(month_checkins)} check-ins, avg energy {avg_energy}/10, top mood: {top_mood}
+- {len(month_focus)} focus sessions ({focus_mins} minutes)
+- {month_challenges} challenges completed, {total_xp} total XP
+- Top AI mode used: {top_mode}
+- Current streak: {streak} days
+- Goals: {', '.join(goal_names) if goal_names else 'None set'}
+
+Write 4 short sections:
+1. HIGHLIGHT: One-line brag stat (most impressive thing)
+2. PERSONALITY: What their usage says about them (be specific and fun)
+3. GROWTH: Where they've improved
+4. NEXT LEVEL: One specific challenge for next month
+
+Keep each section 1-2 sentences. Be real, witty, and personal. No generic fluff."""
+    try:
+        chat = LlmChat(
+            api_key=ANTHROPIC_API_KEY,
+            session_id=f"wrapped_{uid}_{uuid.uuid4().hex[:6]}",
+            system_message="You are Bhaiya, generating a monthly Wrapped report. Be witty, specific, and real."
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        ai_wrapped = await chat.send_message(UserMessage(text=prompt))
+        wrapped_data["ai_wrapped"] = ai_wrapped
+    except Exception as e:
+        logger.error(f"Wrapped AI error: {e}")
+        wrapped_data["ai_wrapped"] = f"Hey {user_name}! You've been crushing it with {month_msgs} messages, {completed_goals} goals done, and {focus_mins} minutes of focused work. Keep that energy going!"
+    return wrapped_data
 
 # ─── ROOT ───
 
