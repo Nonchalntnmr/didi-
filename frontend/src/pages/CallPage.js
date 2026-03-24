@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { PhoneOff, Mic, MicOff, MessageSquare } from "lucide-react";
+import { PhoneOff, Mic, MicOff, MessageSquare, Video, VideoOff, Phone } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -10,404 +10,435 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const ICE_SERVERS = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
 ];
 
 export default function CallPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [callStatus, setCallStatus] = useState("idle"); // idle, connecting, active, ended, error, fallback
+  const [callStatus, setCallStatus] = useState("idle");
   const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOn, setIsCameraOn] = useState(true);
   const [transcript, setTranscript] = useState("");
   const [aiText, setAiText] = useState("");
   const [statusMsg, setStatusMsg] = useState("");
-  const [waveAmplitudes, setWaveAmplitudes] = useState(Array(24).fill(0.05));
+  const [waveAmplitudes, setWaveAmplitudes] = useState(Array(32).fill(0.05));
   const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+
   const pcRef = useRef(null);
   const dcRef = useRef(null);
   const audioRef = useRef(null);
   const localStreamRef = useRef(null);
+  const videoRef = useRef(null);
   const waveIntervalRef = useRef(null);
-  // Fallback refs
+  const durationRef = useRef(null);
   const recognitionRef = useRef(null);
   const synthRef = useRef(window.speechSynthesis);
+  const controlsTimerRef = useRef(null);
 
   // Wave animation
   useEffect(() => {
     waveIntervalRef.current = setInterval(() => {
       const active = callStatus === "active" || callStatus === "fallback";
       setWaveAmplitudes(prev =>
-        prev.map(() => active ? (isAISpeaking ? 0.3 + Math.random() * 0.7 : isListening ? 0.15 + Math.random() * 0.4 : 0.05 + Math.random() * 0.1) : 0.03 + Math.random() * 0.04)
+        prev.map(() => {
+          if (!active) return 0.02 + Math.random() * 0.03;
+          if (isAISpeaking) return 0.2 + Math.random() * 0.8;
+          if (isListening) return 0.1 + Math.random() * 0.35;
+          return 0.03 + Math.random() * 0.08;
+        })
       );
-    }, 80);
+    }, 60);
     return () => clearInterval(waveIntervalRef.current);
   }, [callStatus, isAISpeaking, isListening]);
 
+  // Call duration timer
   useEffect(() => {
-    return () => { cleanup(); };
-  }, []);
+    if (callStatus === "active" || callStatus === "fallback") {
+      durationRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+    }
+    return () => clearInterval(durationRef.current);
+  }, [callStatus]);
+
+  // Auto-hide controls
+  useEffect(() => {
+    const active = callStatus === "active" || callStatus === "fallback";
+    if (active) {
+      controlsTimerRef.current = setTimeout(() => setShowControls(false), 5000);
+    }
+    return () => clearTimeout(controlsTimerRef.current);
+  }, [callStatus, showControls]);
+
+  useEffect(() => { return () => cleanup(); }, []);
 
   const cleanup = () => {
     if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-    if (localStreamRef.current) { localStreamRef.current.getTracks().forEach(t => t.stop()); localStreamRef.current = null; }
+    if (localStreamRef.current) { localStreamRef.current.getTracks().forEach(t => t.stop()); }
     if (audioRef.current) { audioRef.current.srcObject = null; }
     if (recognitionRef.current) { recognitionRef.current.abort(); }
     synthRef.current.cancel();
+    clearInterval(durationRef.current);
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      return stream;
+    } catch (err) {
+      // Try audio only
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStreamRef.current = stream;
+        setIsCameraOn(false);
+        return stream;
+      } catch (e) {
+        throw new Error("No mic access");
+      }
+    }
   };
 
   const startCall = async () => {
     setCallStatus("connecting");
-    setStatusMsg("Getting session...");
+    setStatusMsg("Starting camera...");
+    setCallDuration(0);
 
     try {
-      // Step 1: Get session
+      const stream = await startCamera();
+      setStatusMsg("Connecting to Bhaiya...");
+
+      // Try WebRTC first
       const tokenRes = await fetch(`${API}/v1/realtime/session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      if (!tokenRes.ok) throw new Error(`Session failed: ${tokenRes.status}`);
+      if (!tokenRes.ok) throw new Error("Session failed");
       const tokenData = await tokenRes.json();
-      if (!tokenData.client_secret?.value) throw new Error("No client secret in session response");
-      
-      setStatusMsg("Setting up audio...");
+      if (!tokenData.client_secret?.value) throw new Error("No token");
 
-      // Step 2: Get mic access
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (micErr) {
-        console.error("Mic error:", micErr);
-        setStatusMsg("Mic access denied. Trying fallback...");
-        startFallbackCall();
-        return;
-      }
-      localStreamRef.current = stream;
-
-      setStatusMsg("Connecting to Bhaiya...");
-
-      // Step 3: Create peer connection with ICE servers
       const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
       pcRef.current = pc;
 
-      // Monitor connection state
       pc.onconnectionstatechange = () => {
-        console.log("Connection state:", pc.connectionState);
         if (pc.connectionState === "connected") {
           setCallStatus("active");
           setStatusMsg("");
         } else if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
-          console.log("WebRTC connection failed, falling back...");
           cleanup();
-          startFallbackCall();
+          startFallbackMode();
         }
       };
 
-      pc.oniceconnectionstatechange = () => {
-        console.log("ICE state:", pc.iceConnectionState);
-      };
-
-      // Setup audio output
       const audioEl = document.createElement("audio");
       audioEl.autoplay = true;
       document.body.appendChild(audioEl);
       audioRef.current = audioEl;
+      pc.ontrack = (e) => { audioEl.srcObject = e.streams[0]; setIsAISpeaking(true); };
 
-      pc.ontrack = (event) => {
-        audioEl.srcObject = event.streams[0];
-        setIsAISpeaking(true);
-      };
+      // Only add audio tracks to WebRTC (video stays local)
+      stream.getAudioTracks().forEach(track => pc.addTrack(track, stream));
 
-      // Add local audio tracks
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-
-      // Setup data channel
       const dc = pc.createDataChannel("oai-events");
       dcRef.current = dc;
-      dc.onopen = () => console.log("Data channel open");
       dc.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          if (msg.type === "response.audio_transcript.delta") {
-            setAiText(prev => prev + (msg.delta || ""));
-            setIsAISpeaking(true);
-          } else if (msg.type === "response.audio_transcript.done") {
-            setIsAISpeaking(false);
-          } else if (msg.type === "response.done") {
-            setIsAISpeaking(false);
-          } else if (msg.type === "input_audio_buffer.speech_started") {
-            setTranscript("");
-            setAiText("");
-            setIsListening(true);
-          } else if (msg.type === "input_audio_buffer.speech_stopped") {
-            setIsListening(false);
-          } else if (msg.type === "conversation.item.input_audio_transcription.completed") {
-            setTranscript(msg.transcript || "");
-            setIsListening(false);
-          }
-        } catch (e) { /* non-JSON message */ }
+          if (msg.type === "response.audio_transcript.delta") { setAiText(prev => prev + (msg.delta || "")); setIsAISpeaking(true); }
+          else if (msg.type === "response.audio_transcript.done" || msg.type === "response.done") { setIsAISpeaking(false); }
+          else if (msg.type === "input_audio_buffer.speech_started") { setTranscript(""); setAiText(""); setIsListening(true); }
+          else if (msg.type === "input_audio_buffer.speech_stopped") { setIsListening(false); }
+          else if (msg.type === "conversation.item.input_audio_transcription.completed") { setTranscript(msg.transcript || ""); setIsListening(false); }
+        } catch (e) {}
       };
 
-      // Step 4: Create and send offer
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-
-      // Wait for ICE gathering
-      await new Promise((resolve) => {
-        if (pc.iceGatheringState === "complete") { resolve(); return; }
-        const checkState = () => {
-          if (pc.iceGatheringState === "complete") {
-            pc.removeEventListener("icegatheringstatechange", checkState);
-            resolve();
-          }
-        };
-        pc.addEventListener("icegatheringstatechange", checkState);
-        // Timeout after 3 seconds
-        setTimeout(resolve, 3000);
+      await new Promise(r => {
+        if (pc.iceGatheringState === "complete") { r(); return; }
+        const check = () => { if (pc.iceGatheringState === "complete") { pc.removeEventListener("icegatheringstatechange", check); r(); } };
+        pc.addEventListener("icegatheringstatechange", check);
+        setTimeout(r, 3000);
       });
 
-      const finalOffer = pc.localDescription;
-
-      // Step 5: Negotiate with backend
-      const negotiateRes = await fetch(`${API}/v1/realtime/negotiate`, {
-        method: "POST",
-        body: finalOffer.sdp,
-        headers: { "Content-Type": "application/sdp" },
-        credentials: "include",
+      const negRes = await fetch(`${API}/v1/realtime/negotiate`, {
+        method: "POST", body: pc.localDescription.sdp,
+        headers: { "Content-Type": "application/sdp" }, credentials: "include",
       });
-      if (!negotiateRes.ok) throw new Error(`Negotiate failed: ${negotiateRes.status}`);
-      const { sdp: answerSdp } = await negotiateRes.json();
-      if (!answerSdp || answerSdp.includes('"error"')) {
-        throw new Error("Invalid SDP answer from server");
-      }
-
-      // Step 6: Set remote description
-      await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+      if (!negRes.ok) throw new Error("Negotiate failed");
+      const { sdp } = await negRes.json();
+      if (!sdp || sdp.includes('"error"')) throw new Error("Bad SDP");
+      await pc.setRemoteDescription({ type: "answer", sdp });
       setCallStatus("active");
       setStatusMsg("");
-      console.log("WebRTC call established!");
-
     } catch (err) {
-      console.error("Call setup failed:", err);
-      setStatusMsg(`Connection issue. Switching to voice mode...`);
-      cleanup();
-      setTimeout(() => startFallbackCall(), 500);
+      console.error("WebRTC failed:", err);
+      startFallbackMode();
     }
   };
 
-  // ─── Fallback: Browser Speech API ───
-  const startFallbackCall = () => {
+  const startFallbackMode = () => {
     setCallStatus("fallback");
     setStatusMsg("");
-    startListening();
+    beginListening();
   };
 
-  const startListening = useCallback(() => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-      setStatusMsg("Speech not supported in this browser. Try Chrome.");
-      return;
-    }
+  const beginListening = useCallback(() => {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) return;
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SR();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    recognition.onresult = (e) => {
-      const text = Array.from(e.results).map(r => r[0].transcript).join("");
-      setTranscript(text);
-      setIsListening(true);
-      if (e.results[0].isFinal) {
-        setIsListening(false);
-        sendToChat(text);
-      }
+    const r = new SR();
+    r.continuous = false; r.interimResults = true; r.lang = "en-US";
+    r.onresult = (e) => {
+      const text = Array.from(e.results).map(x => x[0].transcript).join("");
+      setTranscript(text); setIsListening(true);
+      if (e.results[0].isFinal) { setIsListening(false); sendToChat(text); }
     };
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+    r.onerror = () => setIsListening(false);
+    r.onend = () => setIsListening(false);
+    recognitionRef.current = r;
+    r.start(); setIsListening(true);
   }, []);
 
   const sendToChat = async (text) => {
     try {
-      const res = await fetch(`${API}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ message: text }),
-      });
-      if (!res.ok) throw new Error("Chat failed");
+      const res = await fetch(`${API}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ message: text }) });
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setAiText(data.response);
-      speakText(data.response);
-    } catch (err) {
-      setAiText("Couldn't connect. Try again.");
-    }
+      const utt = new SpeechSynthesisUtterance(data.response);
+      utt.rate = 1; utt.pitch = 0.9;
+      const voices = synthRef.current.getVoices();
+      const v = voices.find(x => x.lang === "en-US") || voices[0];
+      if (v) utt.voice = v;
+      utt.onstart = () => setIsAISpeaking(true);
+      utt.onend = () => { setIsAISpeaking(false); if (!isMuted) setTimeout(beginListening, 400); };
+      synthRef.current.speak(utt);
+    } catch { setAiText("Connection issue. Try again."); }
   };
 
-  const speakText = (text) => {
-    synthRef.current.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = 1.0; utt.pitch = 0.9;
-    const voices = synthRef.current.getVoices();
-    const pref = voices.find(v => v.name.includes("Google") && v.lang === "en-US") || voices.find(v => v.lang === "en-US") || voices[0];
-    if (pref) utt.voice = pref;
-    utt.onstart = () => setIsAISpeaking(true);
-    utt.onend = () => {
-      setIsAISpeaking(false);
-      if (!isMuted && callStatus === "fallback") setTimeout(() => startListening(), 400);
-    };
-    synthRef.current.speak(utt);
-  };
-
-  const endCall = () => {
-    cleanup();
-    setCallStatus("ended");
-    setTimeout(() => navigate("/dashboard"), 500);
-  };
+  const endCall = () => { cleanup(); setCallStatus("ended"); setTimeout(() => navigate("/dashboard"), 400); };
 
   const toggleMute = () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getAudioTracks().forEach(t => { t.enabled = isMuted; });
-    }
-    if (isMuted && callStatus === "fallback" && !isAISpeaking) {
-      startListening();
-    } else if (!isMuted && recognitionRef.current) {
-      recognitionRef.current.abort();
-      setIsListening(false);
-    }
+    if (localStreamRef.current) localStreamRef.current.getAudioTracks().forEach(t => { t.enabled = isMuted; });
+    if (isMuted && callStatus === "fallback" && !isAISpeaking) beginListening();
+    else if (!isMuted && recognitionRef.current) { recognitionRef.current.abort(); setIsListening(false); }
     setIsMuted(!isMuted);
   };
 
+  const toggleCamera = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getVideoTracks().forEach(t => { t.enabled = !isCameraOn; });
+    }
+    setIsCameraOn(!isCameraOn);
+  };
+
+  const fmt = (s) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
   const activeCall = callStatus === "active" || callStatus === "fallback";
 
   return (
-    <div className="fixed inset-0 bg-[#050505] text-white flex flex-col items-center justify-center overflow-hidden">
-      {/* Background glow */}
-      <div className={`absolute inset-0 transition-opacity duration-700 ${isAISpeaking ? "opacity-100" : "opacity-0"}`}>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#3B82F6]/6 blur-[120px]" />
+    <div className="fixed inset-0 bg-black text-white overflow-hidden select-none" onClick={() => activeCall && setShowControls(true)}>
+      {/* ─── BHAIYA'S "VIDEO" ─── Full screen animated avatar background */}
+      <div className="absolute inset-0 bg-[#050505] flex items-center justify-center">
+        {/* Ambient reactive glow */}
+        <div className={`absolute w-[500px] h-[500px] rounded-full transition-all duration-700 ${isAISpeaking ? "bg-[#3B82F6]/12 scale-110" : isListening ? "bg-[#10B981]/8 scale-100" : "bg-white/[0.02] scale-90"}`} style={{ filter: "blur(100px)" }} />
+
+        {/* Avatar circle */}
+        <div className="relative flex flex-col items-center z-10">
+          <motion.div
+            animate={{
+              scale: isAISpeaking ? [1, 1.08, 1.02, 1.06, 1] : 1,
+              borderColor: isAISpeaking ? "#3B82F6" : isListening ? "#10B981" : "rgba(255,255,255,0.08)"
+            }}
+            transition={{ repeat: isAISpeaking ? Infinity : 0, duration: 2, ease: "easeInOut" }}
+            className="w-40 h-40 md:w-52 md:h-52 rounded-full border-[3px] flex items-center justify-center relative"
+            style={{ background: "radial-gradient(circle at 40% 35%, #111827, #050505)" }}
+          >
+            <span className="text-6xl md:text-7xl font-bold text-[#3B82F6]" style={{ fontFamily: "Manrope, sans-serif" }}>B</span>
+
+            {/* Pulse rings when speaking */}
+            {isAISpeaking && (
+              <>
+                <motion.div animate={{ scale: [1, 1.4], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} className="absolute inset-0 rounded-full border border-[#3B82F6]/30" />
+                <motion.div animate={{ scale: [1, 1.6], opacity: [0.2, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.3 }} className="absolute inset-0 rounded-full border border-[#3B82F6]/20" />
+              </>
+            )}
+            {isListening && (
+              <motion.div animate={{ scale: [1, 1.3], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 1.2 }} className="absolute inset-0 rounded-full border border-[#10B981]/30" />
+            )}
+          </motion.div>
+
+          {/* Name & status */}
+          <p className="text-lg font-bold mt-5 tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya</p>
+          {activeCall && (
+            <p className="text-xs font-mono mt-1 tracking-wider" style={{ fontFamily: "JetBrains Mono, monospace", color: isAISpeaking ? "#3B82F6" : isListening ? "#10B981" : "#A1A1AA" }}>
+              {isAISpeaking ? "Speaking" : isListening ? "Listening" : fmt(callDuration)}
+            </p>
+          )}
+
+          {/* Waveform bar under avatar */}
+          {activeCall && (
+            <div className="flex items-end gap-[2px] h-10 mt-4">
+              {waveAmplitudes.map((amp, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ height: amp * 36 }}
+                  transition={{ duration: 0.06 }}
+                  className="w-[2px] rounded-full origin-bottom"
+                  style={{ backgroundColor: isAISpeaking ? "#3B82F6" : isListening ? "#10B981" : "#1a1a1a" }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Captions */}
+          {aiText && activeCall && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg text-center mt-4 px-6">
+              <p className="text-sm text-white/70 leading-relaxed">{aiText.slice(-200)}</p>
+            </motion.div>
+          )}
+          {transcript && isListening && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2">
+              <p className="text-xs text-[#10B981]/60 font-mono italic" style={{ fontFamily: "JetBrains Mono, monospace" }}>"{transcript}"</p>
+            </motion.div>
+          )}
+        </div>
       </div>
 
-      {/* Connecting overlay */}
+      {/* ─── USER CAMERA PIP ─── Corner video feed */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+        className="absolute top-6 right-6 z-30 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl"
+        style={{ width: "160px", height: "220px" }}
+      >
+        {isCameraOn ? (
+          <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" style={{ transform: "scaleX(-1)" }} />
+        ) : (
+          <div className="w-full h-full bg-[#121212] flex items-center justify-center">
+            <VideoOff className="w-6 h-6 text-gray-600" />
+          </div>
+        )}
+        {/* Name label */}
+        <div className="absolute bottom-2 left-2 right-2">
+          <p className="text-[10px] font-medium text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5 text-center truncate">
+            {user?.name?.split(" ")[0] || "You"}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* ─── CONNECTING OVERLAY ─── */}
       <AnimatePresence>
         {callStatus === "connecting" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex items-center justify-center z-20 bg-[#050505]">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-black/90 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-[#3B82F6]/10 flex items-center justify-center mx-auto mb-4">
-                <div className="w-12 h-12 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
-              </div>
-              <p className="text-sm font-mono text-gray-400 tracking-widest" style={{ fontFamily: "JetBrains Mono, monospace" }}>
-                {statusMsg || "Connecting..."}
-              </p>
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="w-24 h-24 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center mx-auto mb-6"
+              >
+                <Phone className="w-10 h-10 text-[#3B82F6]" />
+              </motion.div>
+              <p className="text-lg font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Calling Bhaiya...</p>
+              <p className="text-xs text-gray-500 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{statusMsg || "Connecting"}</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center">
-        <motion.div
-          animate={{ scale: isAISpeaking ? [1, 1.06, 1] : 1 }}
-          transition={{ repeat: isAISpeaking ? Infinity : 0, duration: 1.5 }}
-          className="w-32 h-32 rounded-full bg-[#0A0A0A] border-2 flex items-center justify-center mb-6 relative"
-          style={{ borderColor: isAISpeaking ? "#3B82F6" : activeCall ? "#10B981" : "rgba(255,255,255,0.1)" }}
-        >
-          <span className="text-5xl font-bold text-[#3B82F6]" style={{ fontFamily: "Manrope, sans-serif" }}>B</span>
-          {isAISpeaking && <div className="absolute -inset-3 rounded-full border border-[#3B82F6]/20 animate-ping" style={{ animationDuration: "2s" }} />}
-        </motion.div>
-
-        <p className="text-xl font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }} data-testid="call-bhaiya-label">Bhaiya</p>
-        <p className="text-xs font-mono tracking-widest uppercase mb-2" style={{ fontFamily: "JetBrains Mono, monospace", color: activeCall ? "#10B981" : "#A1A1AA" }} data-testid="call-status">
-          {!activeCall ? "Ready" : isAISpeaking ? "Speaking" : isListening ? "Listening" : "Connected"}
-        </p>
-        {callStatus === "fallback" && (
-          <p className="text-[10px] text-gray-600 mb-4 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>Voice Mode</p>
-        )}
-        {statusMsg && activeCall && <p className="text-[10px] text-gray-500 mb-4">{statusMsg}</p>}
-
-        {/* Waveform */}
-        <div className="flex items-center gap-[3px] h-20 mb-6" data-testid="call-waveform">
-          {waveAmplitudes.map((amp, i) => (
-            <motion.div
-              key={i}
-              animate={{ height: amp * 72 }}
-              transition={{ duration: 0.08 }}
-              className="w-[3px] rounded-full"
-              style={{ backgroundColor: isAISpeaking ? "#3B82F6" : isListening ? "#10B981" : activeCall ? "#27272A" : "#141414" }}
-            />
-          ))}
-        </div>
-
-        {/* AI response text */}
-        {aiText && activeCall && (
-          <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="max-w-md text-center px-6 mb-3">
-            <p className="text-sm text-gray-400 leading-relaxed">{aiText.slice(-250)}</p>
-          </motion.div>
-        )}
-
-        {/* Transcript */}
-        {transcript && activeCall && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md text-center px-6 mb-6">
-            <p className="text-xs text-[#10B981]/60 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>"{transcript}"</p>
-          </motion.div>
-        )}
-
-        {/* Start button */}
-        {callStatus === "idle" && (
-          <Button
-            data-testid="start-call-btn"
-            onClick={startCall}
-            className="bg-[#3B82F6] text-black font-bold hover:bg-blue-400 rounded-sm px-10 py-3.5 text-base mb-4 active:scale-95 transition-all"
-          >
-            Call Bhaiya
-          </Button>
-        )}
-
-        {/* Tap to talk for fallback */}
-        {callStatus === "fallback" && !isAISpeaking && !isListening && (
-          <Button
-            data-testid="tap-to-talk-btn"
-            onClick={() => startListening()}
-            className="bg-[#10B981] text-black font-bold hover:bg-emerald-400 rounded-sm px-8 py-3 mb-4"
-          >
-            Tap to Talk
-          </Button>
-        )}
-      </div>
-
-      {/* Controls */}
-      {activeCall && (
-        <div className="absolute bottom-10 left-0 right-0 z-20">
-          <div className="flex items-center justify-center gap-5">
+      {/* ─── IDLE SCREEN ─── */}
+      {callStatus === "idle" && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#050505]">
+          <div className="text-center">
+            <div className="w-32 h-32 rounded-full bg-[#0A0A0A] border-2 border-white/10 flex items-center justify-center mx-auto mb-6">
+              <span className="text-5xl font-bold text-[#3B82F6]" style={{ fontFamily: "Manrope, sans-serif" }}>B</span>
+            </div>
+            <p className="text-xl font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya</p>
+            <p className="text-xs text-gray-500 mb-8">Your AI mentor is ready</p>
             <Button
-              data-testid="call-mute-btn"
-              onClick={toggleMute}
-              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                isMuted ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
-              }`}
+              data-testid="start-call-btn"
+              onClick={startCall}
+              className="bg-[#10B981] hover:bg-emerald-400 text-black font-bold rounded-full px-10 py-4 text-base active:scale-95 transition-all shadow-lg shadow-[#10B981]/20"
             >
-              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              <Phone className="w-5 h-5 mr-2" /> FaceTime
             </Button>
-            <Button
-              data-testid="call-end-btn"
-              onClick={endCall}
-              className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 text-white flex items-center justify-center transition-all active:scale-95"
-            >
-              <PhoneOff className="w-6 h-6" />
-            </Button>
-            <Button
-              data-testid="call-switch-chat-btn"
-              onClick={() => navigate("/chat")}
-              className="w-14 h-14 rounded-full bg-white/5 text-white border border-white/10 hover:bg-white/10 flex items-center justify-center transition-all"
-            >
-              <MessageSquare className="w-5 h-5" />
-            </Button>
+            <div className="mt-6">
+              <button onClick={() => navigate("/dashboard")} className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Back to Dashboard</button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* ─── CONTROLS BAR ─── FaceTime-style bottom controls */}
+      <AnimatePresence>
+        {activeCall && showControls && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute bottom-0 left-0 right-0 z-30 pb-10 pt-20"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)" }}
+          >
+            {/* Tap to talk for fallback */}
+            {callStatus === "fallback" && !isAISpeaking && !isListening && (
+              <div className="text-center mb-6">
+                <button
+                  data-testid="tap-to-talk-btn"
+                  onClick={(e) => { e.stopPropagation(); beginListening(); }}
+                  className="text-xs text-[#10B981] border border-[#10B981]/30 rounded-full px-6 py-2 hover:bg-[#10B981]/10 transition-all"
+                >
+                  Tap to speak
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-center gap-5">
+              {/* Camera toggle */}
+              <button
+                data-testid="call-camera-btn"
+                onClick={(e) => { e.stopPropagation(); toggleCamera(); }}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${
+                  !isCameraOn ? "bg-white/20 text-white" : "bg-white/10 text-white/80"
+                }`}
+              >
+                {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+              </button>
+
+              {/* Mute */}
+              <button
+                data-testid="call-mute-btn"
+                onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${
+                  isMuted ? "bg-white/20 text-white" : "bg-white/10 text-white/80"
+                }`}
+              >
+                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+
+              {/* End call */}
+              <button
+                data-testid="call-end-btn"
+                onClick={(e) => { e.stopPropagation(); endCall(); }}
+                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 text-white flex items-center justify-center transition-all active:scale-90 shadow-lg shadow-red-500/30"
+              >
+                <PhoneOff className="w-6 h-6" />
+              </button>
+
+              {/* Switch to chat */}
+              <button
+                data-testid="call-switch-chat-btn"
+                onClick={(e) => { e.stopPropagation(); navigate("/chat"); }}
+                className="w-14 h-14 rounded-full bg-white/10 text-white/80 flex items-center justify-center transition-all backdrop-blur-sm"
+              >
+                <MessageSquare className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
