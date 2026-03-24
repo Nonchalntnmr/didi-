@@ -6,7 +6,7 @@ from datetime import datetime
 class BhaiyaAITester:
     def __init__(self, base_url="https://mentor-live-1.preview.emergentagent.com/api"):
         self.base_url = base_url
-        self.session_token = "test_session_1774371341729"  # From auth setup
+        self.session_token = "test_session_live_1774371699453"  # From auth setup
         self.tests_run = 0
         self.tests_passed = 0
         self.session_id = None
