@@ -1,72 +1,55 @@
 # Bhaiya AI - PRD
 
 ## Problem Statement
-Build "Bhaiya AI" — a real-time, intelligent AI mentor platform for teens/young adults. Not a chatbot, but a high-performing supportive older brother who teaches, guides, keeps accountable, and talks like a real person.
+Build "Bhaiya AI" — a real-time, intelligent AI mentor platform for teens/young adults. Not a chatbot, but a high-performing supportive older brother.
 
 ## Architecture
 - **Frontend**: React + Tailwind CSS + Framer Motion + Shadcn UI
 - **Backend**: FastAPI + Motor (MongoDB async driver)
-- **Database**: MongoDB (users, sessions, chat_messages, avatar_configs, goals, checkins, focus_sessions, daily_challenges, challenge_completions, routines, routine_logs)
-- **AI**: Claude Sonnet 4.5 via emergentintegrations library (Anthropic API key)
+- **Database**: MongoDB (11 collections: users, user_sessions, chat_messages, avatar_configs, goals, checkins, focus_sessions, daily_challenges, challenge_completions, routines, routine_logs)
+- **AI**: Claude Sonnet 4.5 via emergentintegrations library (user's Anthropic API key)
 - **Auth**: Emergent Google OAuth
 - **Voice**: Browser Web Speech API (SpeechRecognition + SpeechSynthesis) + Claude
 
-## User Personas
-- **Primary**: Teens and young adults (16-25) who want self-improvement
-- **Secondary**: Ambitious, tech-savvy individuals who value accountability
-
-## Core Requirements
-- AI-powered mentorship chat with memory and 7 modes
-- Voice call mode ("Call Bhaiya")
-- Avatar customization (appearance + personality sliders)
-- Focus Mode (Pomodoro-style deep work timer)
-- Challenge Mode (daily challenges with XP + streaks)
-- Routines/Study Plans (CRUD + daily logging + mini calendar)
-- Weekly AI-Generated Summary
-- Shareable Progress Card
-- Daily check-ins and goal tracking
-- Premium dark UI aesthetic
-
-## What's Been Implemented
-
-### Phase 1 (March 24, 2026)
-- Landing page with hero, features bento grid, CTA
+## Implemented Features (March 24, 2026)
+### Core
+- Premium dark UI (Manrope + JetBrains Mono, Obsidian/Blue palette)
 - Emergent Google OAuth authentication
-- Dashboard with action cards, daily check-in, goals, stats
-- Chat page with Claude AI, typing animation, quick actions, mode indicator
-- Call Bhaiya voice mode (Web Speech API + Claude + SpeechSynthesis)
-- Avatar customization (face, skin, hair, outfit presets + personality sliders)
-- Full CRUD for goals, check-ins, chat history
-- Memory system (last 15 messages + goals + check-ins as context)
-- Agent mode auto-detection (Educator, Coach, Wellness, Listener)
+- 7 AI conversation modes (Educator, Coach, Wellness, Listener, General, Future You, Brutal Honesty)
+- Memory-aware AI responses (last 15 messages + goals + check-ins as context)
 
-### Phase 2 (March 24, 2026)
-- Focus Mode with timer presets (15/25/50/90 min) + tips + session history
-- Challenge Mode with 20 challenge pool, daily 3, XP system, streaks
-- Routines/Study Plans with steps, categories, daily logging, 7-day calendar
-- Weekly Summary with AI-generated analysis and stats
-- Shareable Progress Card with stats snapshot
-- Future You Mode (Bhaiya as user's future self)
-- Brutal Honesty Mode (tough-love feedback)
-- Enhanced stats (focus time, challenges completed, real streak calc)
-- Dashboard with 8 action cards + quick links row
+### Pages (10 total)
+1. Landing Page - Hero with gradient text, features grid, modes showcase, social proof, CTA
+2. Dashboard - Gradient hero, Call Bhaiya card, 4 action cards, 5 quick buttons, check-in, stats, goals
+3. Chat - Mode selector, streaming animation, quick actions, clear history
+4. Call Bhaiya - Voice call with SpeechRecognition/Synthesis, waveform, camera
+5. Avatar Customize - Face/skin/hair/outfit presets, personality sliders (strict/humor/verbosity), voice
+6. Focus Mode - Pomodoro timer (15/25/50/90 min), tips, session history
+7. Challenges - 3 daily challenges from 20-pool, XP system, streaks, difficulty badges
+8. Routines - Study plans with steps, categories, daily logging, 7-day calendar
+9. Weekly Summary - AI-generated analysis, stats breakdown, mood charts
+10. Progress Card - Shareable stats card
 
-## All Features Complete
-- 10 frontend pages (Landing, Dashboard, Chat, Call, Avatar Customize, Focus, Challenges, Routines, Weekly Summary, Progress Card)
-- 33+ backend API endpoints all tested and passing
-- 7 AI conversation modes
-- Full CRUD for goals, routines, challenges
-- Memory-aware AI responses
+### Backend (33+ endpoints)
+- Auth (session exchange, /me, logout)
+- Chat with Claude AI
+- Avatar config CRUD
+- Goals CRUD
+- Check-ins (create, latest, history)
+- Focus sessions (start, end, history)
+- Challenges (today, complete, streak)
+- Routines CRUD + daily logging
+- Weekly AI summary
+- Progress card data
+- Enhanced stats
 
-## Prioritized Remaining Backlog
-
+## Remaining Backlog
 ### P1
-- Notification/reminder system
+- Push notifications / reminders
 - Mobile PWA optimization
-- OpenAI Realtime Voice API (for higher quality voice calls)
+- OpenAI Realtime Voice API (higher quality voice)
 
 ### P2
-- Pinecone vector DB for advanced long-term memory
-- Export progress reports as PDF
-- Social/community features
-- Habit tracking with graphs
+- Pinecone vector DB for long-term memory
+- PDF export for progress reports
+- Community leaderboard
