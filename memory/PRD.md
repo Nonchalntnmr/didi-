@@ -6,7 +6,7 @@ Build "Bhaiya AI" — a real-time, intelligent AI mentor platform for teens/youn
 ## Architecture
 - **Frontend**: React + Tailwind CSS + Framer Motion + Shadcn UI
 - **Backend**: FastAPI + Motor (MongoDB async driver)
-- **Database**: MongoDB (users, sessions, chat_messages, avatar_configs, goals, checkins)
+- **Database**: MongoDB (users, sessions, chat_messages, avatar_configs, goals, checkins, focus_sessions, daily_challenges, challenge_completions, routines, routine_logs)
 - **AI**: Claude Sonnet 4.5 via emergentintegrations library (Anthropic API key)
 - **Auth**: Emergent Google OAuth
 - **Voice**: Browser Web Speech API (SpeechRecognition + SpeechSynthesis) + Claude
@@ -16,14 +16,20 @@ Build "Bhaiya AI" — a real-time, intelligent AI mentor platform for teens/youn
 - **Secondary**: Ambitious, tech-savvy individuals who value accountability
 
 ## Core Requirements
-- AI-powered mentorship chat with memory
+- AI-powered mentorship chat with memory and 7 modes
 - Voice call mode ("Call Bhaiya")
 - Avatar customization (appearance + personality sliders)
-- Auto-detection of conversation mode (Educator, Coach, Wellness, Listener)
+- Focus Mode (Pomodoro-style deep work timer)
+- Challenge Mode (daily challenges with XP + streaks)
+- Routines/Study Plans (CRUD + daily logging + mini calendar)
+- Weekly AI-Generated Summary
+- Shareable Progress Card
 - Daily check-ins and goal tracking
 - Premium dark UI aesthetic
 
-## What's Been Implemented (March 24, 2026)
+## What's Been Implemented
+
+### Phase 1 (March 24, 2026)
 - Landing page with hero, features bento grid, CTA
 - Emergent Google OAuth authentication
 - Dashboard with action cards, daily check-in, goals, stats
@@ -33,32 +39,34 @@ Build "Bhaiya AI" — a real-time, intelligent AI mentor platform for teens/youn
 - Full CRUD for goals, check-ins, chat history
 - Memory system (last 15 messages + goals + check-ins as context)
 - Agent mode auto-detection (Educator, Coach, Wellness, Listener)
-- All backend APIs tested and passing (15/15)
-- All frontend pages tested and passing
 
-## Prioritized Backlog
+### Phase 2 (March 24, 2026)
+- Focus Mode with timer presets (15/25/50/90 min) + tips + session history
+- Challenge Mode with 20 challenge pool, daily 3, XP system, streaks
+- Routines/Study Plans with steps, categories, daily logging, 7-day calendar
+- Weekly Summary with AI-generated analysis and stats
+- Shareable Progress Card with stats snapshot
+- Future You Mode (Bhaiya as user's future self)
+- Brutal Honesty Mode (tough-love feedback)
+- Enhanced stats (focus time, challenges completed, real streak calc)
+- Dashboard with 8 action cards + quick links row
 
-### P0 (Next Phase)
-- Weekly progress summary reports
-- Focus Mode (timed deep work sessions)
-- Challenge Mode (daily tasks + streaks)
+## All Features Complete
+- 10 frontend pages (Landing, Dashboard, Chat, Call, Avatar Customize, Focus, Challenges, Routines, Weekly Summary, Progress Card)
+- 33+ backend API endpoints all tested and passing
+- 7 AI conversation modes
+- Full CRUD for goals, routines, challenges
+- Memory-aware AI responses
+
+## Prioritized Remaining Backlog
 
 ### P1
-- Future You Mode (Bhaiya speaks as user's future self)
-- Brutal Honesty Mode (direct feedback toggle)
-- Long-term memory extraction (auto-extract key facts from conversations)
-- Richer avatar visuals (AI-generated or illustrated presets)
+- Notification/reminder system
+- Mobile PWA optimization
+- OpenAI Realtime Voice API (for higher quality voice calls)
 
 ### P2
-- OpenAI Realtime Voice API integration (higher quality voice)
 - Pinecone vector DB for advanced long-term memory
-- Mobile-optimized PWA
-- Notification system (daily reminders)
 - Export progress reports as PDF
-
-## Next Tasks
-1. Weekly summary generation from check-ins and goals
-2. Focus Mode timer with Bhaiya guidance
-3. Challenge Mode with streak tracking
-4. Enhanced memory extraction from conversations
-5. Mobile responsiveness polish
+- Social/community features
+- Habit tracking with graphs
