@@ -63,6 +63,31 @@ class AvatarConfig(BaseModel):
     verbosity_level: Optional[int] = 5
     voice_type: Optional[str] = "calm"
 
+class FocusStart(BaseModel):
+    duration_minutes: int = 25
+    task: Optional[str] = ""
+
+class FocusEnd(BaseModel):
+    session_id: str
+    completed: bool = True
+    notes: Optional[str] = ""
+
+class RoutineCreate(BaseModel):
+    title: str
+    steps: List[str] = []
+    category: Optional[str] = "study"
+    frequency: Optional[str] = "daily"
+
+class RoutineUpdate(BaseModel):
+    title: Optional[str] = None
+    steps: Optional[List[str]] = None
+    category: Optional[str] = None
+    frequency: Optional[str] = None
+    active: Optional[bool] = None
+
+class ChallengeComplete(BaseModel):
+    challenge_id: str
+
 # ─── AUTH HELPERS ───
 
 async def get_current_user(request: Request):
@@ -188,7 +213,9 @@ def build_system_prompt(avatar_config: dict, memory_context: str, mode: str) -> 
         "coach": "You are in PERFORMANCE COACH mode. Build discipline. Create actionable routines. Push consistency. Be firm but encouraging.",
         "wellness": "You are in WELLNESS GUIDE mode. Give practical advice on food, sleep, and habits. Be caring but straightforward.",
         "listener": "You are in LISTENER mode. Provide emotional support. Be empathetic and reflective. Ask thoughtful questions. Don't rush to solutions.",
-        "general": "Auto-detect what the user needs and respond accordingly. You can switch between educator, coach, wellness guide, or listener."
+        "general": "Auto-detect what the user needs and respond accordingly. You can switch between educator, coach, wellness guide, or listener.",
+        "future_you": "You are in FUTURE YOU mode. Speak AS the user's future successful self, 10 years from now. Be aspirational, visionary, and speak from experience. Use 'I remember when I was where you are now...' type framing. Be specific about what their future looks like if they stay consistent.",
+        "brutal_honesty": "You are in BRUTAL HONESTY mode. Be extremely direct and no-BS. Call out excuses. Point out patterns they might be avoiding. Still be constructive — harsh truth is only useful if it comes with a path forward. Think tough-love drill sergeant who genuinely cares."
     }
     return f"""You are Bhaiya - a high-performing, supportive older brother and AI mentor for teens and young adults.
 
@@ -410,12 +437,376 @@ async def get_stats(request: Request):
     total_goals = await db.goals.count_documents({"user_id": uid})
     completed_goals = await db.goals.count_documents({"user_id": uid, "completed": True})
     total_checkins = await db.checkins.count_documents({"user_id": uid})
+    total_focus = await db.focus_sessions.count_documents({"user_id": uid, "completed": True})
+    total_challenges = await db.challenge_completions.count_documents({"user_id": uid})
+    focus_minutes = 0
+    sessions = await db.focus_sessions.find({"user_id": uid, "completed": True}, {"_id": 0}).to_list(100)
+    for s in sessions:
+        focus_minutes += s.get("duration_minutes", 0)
+    # Calculate real streak from check-ins
+    streak = 0
+    checkins = await db.checkins.find({"user_id": uid}, {"_id": 0, "created_at": 1}).sort("created_at", -1).to_list(60)
+    if checkins:
+        today = datetime.now(timezone.utc).date()
+        for i, c in enumerate(checkins):
+            ca = c.get("created_at", "")
+            if isinstance(ca, str):
+                try:
+                    d = datetime.fromisoformat(ca).date()
+                except Exception:
+                    break
+            else:
+                d = ca.date() if hasattr(ca, 'date') else today
+            expected = today - timedelta(days=i)
+            if d == expected:
+                streak += 1
+            else:
+                break
     return {
         "total_messages": total_msgs,
         "total_goals": total_goals,
         "completed_goals": completed_goals,
         "total_checkins": total_checkins,
-        "streak": min(total_checkins, 7)
+        "streak": streak,
+        "total_focus_sessions": total_focus,
+        "total_focus_minutes": focus_minutes,
+        "total_challenges_completed": total_challenges,
+    }
+
+# ─── FOCUS MODE ───
+
+FOCUS_TIPS = [
+    "Block all distractions. Your phone can wait.",
+    "One task at a time. Multitasking is a myth.",
+    "Take deep breaths. Focus follows calm.",
+    "Remember why you started this session.",
+    "You're building momentum. Don't break the chain.",
+    "Small consistent effort beats occasional heroics.",
+    "Your future self will thank you for this.",
+    "Stay in the zone. The flow state is earned.",
+]
+
+@api_router.post("/focus/start")
+async def start_focus(req: FocusStart, request: Request):
+    user = await get_current_user(request)
+    import random
+    session_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "duration_minutes": req.duration_minutes,
+        "task": req.task,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "ended_at": None,
+        "completed": False,
+        "notes": "",
+        "tip": random.choice(FOCUS_TIPS),
+    }
+    await db.focus_sessions.insert_one(session_doc)
+    session_doc.pop("_id", None)
+    return session_doc
+
+@api_router.post("/focus/end")
+async def end_focus(req: FocusEnd, request: Request):
+    user = await get_current_user(request)
+    await db.focus_sessions.update_one(
+        {"id": req.session_id, "user_id": user["user_id"]},
+        {"$set": {
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+            "completed": req.completed,
+            "notes": req.notes,
+        }}
+    )
+    session = await db.focus_sessions.find_one({"id": req.session_id}, {"_id": 0})
+    return session or {}
+
+@api_router.get("/focus/sessions")
+async def get_focus_sessions(request: Request, limit: int = 20):
+    user = await get_current_user(request)
+    sessions = await db.focus_sessions.find(
+        {"user_id": user["user_id"]}, {"_id": 0}
+    ).sort("started_at", -1).limit(limit).to_list(limit)
+    return sessions
+
+# ─── CHALLENGE MODE ───
+
+CHALLENGES_POOL = [
+    {"title": "Read for 20 minutes", "category": "study", "difficulty": "easy", "xp": 10},
+    {"title": "Do 20 push-ups", "category": "fitness", "difficulty": "easy", "xp": 10},
+    {"title": "Drink 8 glasses of water", "category": "wellness", "difficulty": "easy", "xp": 10},
+    {"title": "Write down 3 things you're grateful for", "category": "mindset", "difficulty": "easy", "xp": 10},
+    {"title": "No social media for 2 hours", "category": "discipline", "difficulty": "medium", "xp": 20},
+    {"title": "Study a topic for 45 minutes straight", "category": "study", "difficulty": "medium", "xp": 25},
+    {"title": "Go for a 30-min walk or run", "category": "fitness", "difficulty": "medium", "xp": 20},
+    {"title": "Cook a healthy meal from scratch", "category": "wellness", "difficulty": "medium", "xp": 20},
+    {"title": "Complete a full Pomodoro cycle (4x25 min)", "category": "discipline", "difficulty": "hard", "xp": 40},
+    {"title": "Wake up at 6 AM", "category": "discipline", "difficulty": "hard", "xp": 30},
+    {"title": "Teach someone something you learned today", "category": "study", "difficulty": "medium", "xp": 25},
+    {"title": "Journal for 15 minutes about your goals", "category": "mindset", "difficulty": "easy", "xp": 15},
+    {"title": "Do a 10-minute meditation", "category": "wellness", "difficulty": "easy", "xp": 15},
+    {"title": "No junk food today", "category": "wellness", "difficulty": "medium", "xp": 20},
+    {"title": "Reach out to someone you care about", "category": "social", "difficulty": "easy", "xp": 10},
+    {"title": "Plan your next day before sleeping", "category": "discipline", "difficulty": "easy", "xp": 10},
+    {"title": "Learn 10 new vocabulary words", "category": "study", "difficulty": "medium", "xp": 20},
+    {"title": "Do a 1-minute cold shower", "category": "discipline", "difficulty": "hard", "xp": 35},
+    {"title": "Stretch for 15 minutes", "category": "fitness", "difficulty": "easy", "xp": 10},
+    {"title": "Organize your workspace", "category": "discipline", "difficulty": "easy", "xp": 10},
+]
+
+@api_router.get("/challenges/today")
+async def get_today_challenges(request: Request):
+    user = await get_current_user(request)
+    uid = user["user_id"]
+    today = datetime.now(timezone.utc).date().isoformat()
+    existing = await db.daily_challenges.find({"user_id": uid, "date": today}, {"_id": 0}).to_list(3)
+    if existing:
+        return existing
+    import random
+    selected = random.sample(CHALLENGES_POOL, min(3, len(CHALLENGES_POOL)))
+    challenges = []
+    for ch in selected:
+        doc = {
+            "id": str(uuid.uuid4()),
+            "user_id": uid,
+            "date": today,
+            "title": ch["title"],
+            "category": ch["category"],
+            "difficulty": ch["difficulty"],
+            "xp": ch["xp"],
+            "completed": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.daily_challenges.insert_one(doc)
+        doc.pop("_id", None)
+        challenges.append(doc)
+    return challenges
+
+@api_router.post("/challenges/complete")
+async def complete_challenge(req: ChallengeComplete, request: Request):
+    user = await get_current_user(request)
+    challenge = await db.daily_challenges.find_one(
+        {"id": req.challenge_id, "user_id": user["user_id"]}, {"_id": 0}
+    )
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    await db.daily_challenges.update_one(
+        {"id": req.challenge_id},
+        {"$set": {"completed": True, "completed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    await db.challenge_completions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "challenge_id": req.challenge_id,
+        "title": challenge["title"],
+        "xp": challenge.get("xp", 10),
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+    })
+    updated = await db.daily_challenges.find_one({"id": req.challenge_id}, {"_id": 0})
+    return updated
+
+@api_router.get("/challenges/streak")
+async def get_challenge_streak(request: Request):
+    user = await get_current_user(request)
+    uid = user["user_id"]
+    completions = await db.challenge_completions.find({"user_id": uid}, {"_id": 0}).sort("completed_at", -1).to_list(200)
+    total_xp = sum(c.get("xp", 0) for c in completions)
+    # Calculate streak days
+    streak = 0
+    if completions:
+        dates_set = set()
+        for c in completions:
+            try:
+                d = datetime.fromisoformat(c["completed_at"]).date()
+                dates_set.add(d)
+            except Exception:
+                pass
+        today = datetime.now(timezone.utc).date()
+        for i in range(365):
+            if (today - timedelta(days=i)) in dates_set:
+                streak += 1
+            else:
+                break
+    return {"streak": streak, "total_xp": total_xp, "total_completed": len(completions)}
+
+# ─── ROUTINES / STUDY PLANS ───
+
+@api_router.post("/routines")
+async def create_routine(routine: RoutineCreate, request: Request):
+    user = await get_current_user(request)
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "title": routine.title,
+        "steps": routine.steps,
+        "category": routine.category,
+        "frequency": routine.frequency,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.routines.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/routines")
+async def get_routines(request: Request):
+    user = await get_current_user(request)
+    routines = await db.routines.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return routines
+
+@api_router.put("/routines/{routine_id}")
+async def update_routine(routine_id: str, update: RoutineUpdate, request: Request):
+    user = await get_current_user(request)
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    await db.routines.update_one(
+        {"id": routine_id, "user_id": user["user_id"]},
+        {"$set": update_data}
+    )
+    routine = await db.routines.find_one({"id": routine_id}, {"_id": 0})
+    return routine
+
+@api_router.delete("/routines/{routine_id}")
+async def delete_routine(routine_id: str, request: Request):
+    user = await get_current_user(request)
+    await db.routines.delete_one({"id": routine_id, "user_id": user["user_id"]})
+    return {"message": "Routine deleted"}
+
+@api_router.post("/routines/{routine_id}/log")
+async def log_routine_completion(routine_id: str, request: Request):
+    user = await get_current_user(request)
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "routine_id": routine_id,
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.routine_logs.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/routines/{routine_id}/logs")
+async def get_routine_logs(routine_id: str, request: Request, limit: int = 30):
+    user = await get_current_user(request)
+    logs = await db.routine_logs.find(
+        {"user_id": user["user_id"], "routine_id": routine_id}, {"_id": 0}
+    ).sort("completed_at", -1).limit(limit).to_list(limit)
+    return logs
+
+# ─── WEEKLY SUMMARY ───
+
+@api_router.get("/summary/weekly")
+async def get_weekly_summary(request: Request):
+    user = await get_current_user(request)
+    uid = user["user_id"]
+    user_name = user.get("name", "there")
+    week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    checkins = await db.checkins.find(
+        {"user_id": uid, "created_at": {"$gte": week_ago}}, {"_id": 0}
+    ).to_list(30)
+    msgs = await db.chat_messages.count_documents(
+        {"user_id": uid, "role": "user", "created_at": {"$gte": week_ago}}
+    )
+    goals_completed = await db.goals.count_documents({"user_id": uid, "completed": True})
+    goals_total = await db.goals.count_documents({"user_id": uid})
+    focus_sessions = await db.focus_sessions.find(
+        {"user_id": uid, "completed": True, "started_at": {"$gte": week_ago}}, {"_id": 0}
+    ).to_list(50)
+    focus_mins = sum(s.get("duration_minutes", 0) for s in focus_sessions)
+    challenges_done = await db.challenge_completions.count_documents(
+        {"user_id": uid, "completed_at": {"$gte": week_ago}}
+    )
+    avg_energy = 0
+    if checkins:
+        avg_energy = round(sum(c.get("energy_level", 5) for c in checkins) / len(checkins), 1)
+    moods = [c.get("mood", "neutral") for c in checkins]
+    mood_counts = {}
+    for m in moods:
+        mood_counts[m] = mood_counts.get(m, 0) + 1
+    top_mood = max(mood_counts, key=mood_counts.get) if mood_counts else "neutral"
+    summary_data = {
+        "period": f"{(datetime.now(timezone.utc) - timedelta(days=7)).strftime('%b %d')} - {datetime.now(timezone.utc).strftime('%b %d, %Y')}",
+        "checkins_count": len(checkins),
+        "messages_sent": msgs,
+        "goals_completed": goals_completed,
+        "goals_total": goals_total,
+        "focus_sessions": len(focus_sessions),
+        "focus_minutes": focus_mins,
+        "challenges_completed": challenges_done,
+        "avg_energy": avg_energy,
+        "top_mood": top_mood,
+        "mood_breakdown": mood_counts,
+    }
+    # Generate AI summary
+    prompt = f"""Generate a brief, encouraging weekly summary for {user_name}. Their stats this week:
+- {len(checkins)} check-ins, avg energy {avg_energy}/10, top mood: {top_mood}
+- {msgs} messages with Bhaiya
+- {goals_completed}/{goals_total} goals completed
+- {len(focus_sessions)} focus sessions ({focus_mins} minutes total)
+- {challenges_done} challenges completed
+
+Be specific, reference the data, and give 2-3 actionable suggestions for next week. Keep it under 150 words. Be real, not generic."""
+    try:
+        chat = LlmChat(
+            api_key=ANTHROPIC_API_KEY,
+            session_id=f"summary_{uid}_{uuid.uuid4().hex[:6]}",
+            system_message="You are Bhaiya, a supportive AI mentor. Generate a weekly progress summary."
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        ai_summary = await chat.send_message(UserMessage(text=prompt))
+        summary_data["ai_summary"] = ai_summary
+    except Exception as e:
+        logger.error(f"Summary AI error: {e}")
+        summary_data["ai_summary"] = f"Great week, {user_name}! You sent {msgs} messages, completed {goals_completed} goals, and did {focus_mins} minutes of focused work. Keep building consistency!"
+    return summary_data
+
+# ─── PROGRESS CARD ───
+
+@api_router.get("/progress-card")
+async def get_progress_card(request: Request):
+    user = await get_current_user(request)
+    uid = user["user_id"]
+    total_msgs = await db.chat_messages.count_documents({"user_id": uid, "role": "user"})
+    total_goals = await db.goals.count_documents({"user_id": uid})
+    completed_goals = await db.goals.count_documents({"user_id": uid, "completed": True})
+    total_checkins = await db.checkins.count_documents({"user_id": uid})
+    total_focus = await db.focus_sessions.count_documents({"user_id": uid, "completed": True})
+    focus_mins = 0
+    sessions = await db.focus_sessions.find({"user_id": uid, "completed": True}, {"_id": 0, "duration_minutes": 1}).to_list(500)
+    for s in sessions:
+        focus_mins += s.get("duration_minutes", 0)
+    total_xp_docs = await db.challenge_completions.find({"user_id": uid}, {"_id": 0, "xp": 1}).to_list(500)
+    total_xp = sum(d.get("xp", 0) for d in total_xp_docs)
+    # Streak
+    streak = 0
+    checkins = await db.checkins.find({"user_id": uid}, {"_id": 0, "created_at": 1}).sort("created_at", -1).to_list(60)
+    if checkins:
+        today = datetime.now(timezone.utc).date()
+        for i, c in enumerate(checkins):
+            ca = c.get("created_at", "")
+            if isinstance(ca, str):
+                try:
+                    d = datetime.fromisoformat(ca).date()
+                except Exception:
+                    break
+            else:
+                d = ca.date() if hasattr(ca, 'date') else today
+            expected = today - timedelta(days=i)
+            if d == expected:
+                streak += 1
+            else:
+                break
+    member_since = user.get("created_at", datetime.now(timezone.utc).isoformat())
+    return {
+        "name": user.get("name", "User"),
+        "picture": user.get("picture", ""),
+        "member_since": member_since,
+        "total_messages": total_msgs,
+        "total_goals": total_goals,
+        "completed_goals": completed_goals,
+        "total_checkins": total_checkins,
+        "streak": streak,
+        "total_focus_sessions": total_focus,
+        "total_focus_minutes": focus_mins,
+        "total_xp": total_xp,
     }
 
 # ─── ROOT ───

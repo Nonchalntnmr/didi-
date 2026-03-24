@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Send, Phone, Trash2, Sparkles, BookOpen, Flame, Heart, Headphones } from "lucide-react";
+import { ArrowLeft, Send, Phone, Trash2, Sparkles, BookOpen, Flame, Heart, Headphones, Skull, Rocket } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { useAuth } from "../contexts/AuthContext";
@@ -14,6 +14,8 @@ const modeConfig = {
   wellness: { icon: Heart, label: "Wellness", color: "#10B981" },
   listener: { icon: Headphones, label: "Listener", color: "#A78BFA" },
   general: { icon: Sparkles, label: "General", color: "#A1A1AA" },
+  future_you: { icon: Rocket, label: "Future You", color: "#3B82F6" },
+  brutal_honesty: { icon: Skull, label: "Brutal Honesty", color: "#EF4444" },
 };
 
 export default function ChatPage() {
@@ -101,8 +103,11 @@ export default function ChatPage() {
     { label: "Explain simpler", msg: "Can you explain that in a simpler way?" },
     { label: "Challenge me", msg: "Give me a challenge to push myself today" },
     { label: "Give me a plan", msg: "Create an actionable plan for me" },
+    { label: "Build my routine", msg: "Help me build a daily routine for my goals" },
+    { label: "Review my week", msg: "Can you review how my week has been going?" },
   ];
 
+  const modes = Object.entries(modeConfig);
   const ModeIcon = modeConfig[currentMode]?.icon || Sparkles;
 
   return (
@@ -134,6 +139,24 @@ export default function ChatPage() {
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
+        </div>
+        {/* Mode selector */}
+        <div className="max-w-4xl mx-auto px-4 py-2 flex gap-1.5 overflow-x-auto">
+          {modes.map(([key, cfg]) => (
+            <button
+              key={key}
+              data-testid={`mode-btn-${key}`}
+              onClick={() => setCurrentMode(key)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[10px] font-medium transition-all ${
+                currentMode === key
+                  ? "text-black font-bold"
+                  : "bg-transparent text-gray-500 hover:text-gray-300 border border-white/5 hover:border-white/15"
+              }`}
+              style={currentMode === key ? { backgroundColor: cfg.color } : {}}
+            >
+              <cfg.icon className="w-3 h-3" /> {cfg.label}
+            </button>
+          ))}
         </div>
       </div>
 

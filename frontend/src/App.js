@@ -8,6 +8,11 @@ import Dashboard from "./pages/Dashboard";
 import ChatPage from "./pages/ChatPage";
 import CallPage from "./pages/CallPage";
 import AvatarCustomize from "./pages/AvatarCustomize";
+import FocusMode from "./pages/FocusMode";
+import ChallengePage from "./pages/ChallengePage";
+import RoutinesPage from "./pages/RoutinesPage";
+import WeeklySummary from "./pages/WeeklySummary";
+import ProgressCard from "./pages/ProgressCard";
 
 function AppRouter() {
   const location = useLocation();
@@ -24,6 +29,11 @@ function AppRouter() {
       <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
       <Route path="/call" element={<ProtectedRoute><CallPage /></ProtectedRoute>} />
       <Route path="/customize" element={<ProtectedRoute><AvatarCustomize /></ProtectedRoute>} />
+      <Route path="/focus" element={<ProtectedRoute><FocusMode /></ProtectedRoute>} />
+      <Route path="/challenges" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
+      <Route path="/routines" element={<ProtectedRoute><RoutinesPage /></ProtectedRoute>} />
+      <Route path="/summary" element={<ProtectedRoute><WeeklySummary /></ProtectedRoute>} />
+      <Route path="/progress" element={<ProtectedRoute><ProgressCard /></ProtectedRoute>} />
     </Routes>
   );
 }

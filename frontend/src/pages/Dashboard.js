@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MessageSquare, Phone, BookOpen, Heart, Target, Zap, LogOut, Settings, ChevronRight } from "lucide-react";
+import { MessageSquare, Phone, BookOpen, Heart, Target, Zap, LogOut, Settings, ChevronRight, Crosshair, Trophy, List, TrendingUp, Share2, Skull, Rocket } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
@@ -123,12 +123,16 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Action Cards */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           {[
             { icon: BookOpen, label: "Study", color: "#3B82F6", path: "/chat", mode: "educator", testId: "action-study" },
             { icon: Heart, label: "Health", color: "#10B981", path: "/chat", mode: "wellness", testId: "action-health" },
             { icon: MessageSquare, label: "Talk", color: "#A1A1AA", path: "/chat", mode: "general", testId: "action-talk" },
             { icon: Phone, label: "Call Bhaiya", color: "#F59E0B", path: "/call", testId: "action-call" },
+            { icon: Crosshair, label: "Focus Mode", color: "#EF4444", path: "/focus", testId: "action-focus" },
+            { icon: Trophy, label: "Challenges", color: "#A78BFA", path: "/challenges", testId: "action-challenges" },
+            { icon: List, label: "Routines", color: "#EC4899", path: "/routines", testId: "action-routines" },
+            { icon: Skull, label: "Brutal Honesty", color: "#EF4444", path: "/chat", mode: "brutal_honesty", testId: "action-brutal" },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -145,6 +149,24 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>{item.label}</p>
               </Card>
             </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Quick links row */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="flex gap-3 mb-8 overflow-x-auto pb-2">
+          {[
+            { icon: TrendingUp, label: "Weekly Summary", path: "/summary", testId: "quick-summary" },
+            { icon: Share2, label: "Progress Card", path: "/progress", testId: "quick-progress" },
+            { icon: Rocket, label: "Future You", path: "/chat", mode: "future_you", testId: "quick-future" },
+          ].map((item, i) => (
+            <button
+              key={i}
+              data-testid={item.testId}
+              onClick={() => navigate(item.path, { state: { mode: item.mode } })}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-sm bg-[#0A0A0A] border border-white/5 text-gray-400 hover:border-[#3B82F6]/30 hover:text-white transition-all text-xs"
+            >
+              <item.icon className="w-3 h-3" /> {item.label}
+            </button>
           ))}
         </motion.div>
 
@@ -240,10 +262,10 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Messages</span>
-                      <span className="text-white font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.total_messages}</span>
+                      <span className="text-gray-400">Streak</span>
+                      <span className="text-[#F59E0B] font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.streak} days</span>
                     </div>
-                    <Progress value={Math.min(stats.total_messages * 2, 100)} className="h-1 bg-[#121212]" />
+                    <Progress value={(stats.streak / 7) * 100} className="h-1 bg-[#121212]" />
                   </div>
                   <div>
                     <div className="flex justify-between text-xs mb-1">
@@ -254,15 +276,19 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Streak</span>
-                      <span className="text-[#F59E0B] font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.streak} days</span>
+                      <span className="text-gray-400">Focus Time</span>
+                      <span className="text-white font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.total_focus_minutes || 0}m</span>
                     </div>
-                    <Progress value={(stats.streak / 7) * 100} className="h-1 bg-[#121212]" />
+                    <Progress value={Math.min((stats.total_focus_minutes || 0) / 120 * 100, 100)} className="h-1 bg-[#121212]" />
                   </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Check-ins</span>
-                      <span className="text-white font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.total_checkins}</span>
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                    <div className="text-center">
+                      <p className="text-sm font-bold font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.total_messages}</p>
+                      <p className="text-[10px] text-gray-500">Messages</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{stats.total_challenges_completed || 0}</p>
+                      <p className="text-[10px] text-gray-500">Challenges</p>
                     </div>
                   </div>
                 </div>
