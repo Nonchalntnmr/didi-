@@ -1,0 +1,109 @@
+{
+  "brand_identity": {
+    "name": "Bhaiya AI",
+    "persona": "The High-Performance Older Brother",
+    "aesthetic": "Citadel Terminal meets Luxury Tech",
+    "core_values": ["Precision", "Accountability", "Speed", "Elite"],
+    "theme_mode": "dark"
+  },
+  "typography": {
+    "font_families": {
+      "headings": "Manrope, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "display": "text-6xl md:text-8xl tracking-tighter font-bold",
+      "h1": "text-4xl md:text-5xl tracking-tight font-bold",
+      "h2": "text-3xl tracking-tight font-semibold",
+      "h3": "text-2xl tracking-tight font-medium",
+      "body": "text-base leading-relaxed text-gray-400",
+      "mono_label": "text-xs font-mono uppercase tracking-widest text-gray-500"
+    },
+    "installation": "Imports via Google Fonts or generic fallbacks provided in CSS."
+  },
+  "colors": {
+    "palette": {
+      "background": "#050505",
+      "surface": "#0A0A0A",
+      "surface_highlight": "#121212",
+      "border": "#27272A",
+      "primary": "#3B82F6",
+      "primary_glow": "rgba(59, 130, 246, 0.5)",
+      "secondary": "#FFFFFF",
+      "muted": "#A1A1AA",
+      "accent_warning": "#F59E0B",
+      "accent_success": "#10B981",
+      "danger": "#EF4444"
+    },
+    "rules": [
+      "No purple/violet gradients.",
+      "Backgrounds are never pure black (#000000), use Obsidian (#050505).",
+      "Primary blue is used strictly for Actions and Active States.",
+      "Text is never pure white (#FFFFFF) unless it is a Heading. Body text is #A1A1AA."
+    ]
+  },
+  "visual_enhancers": {
+    "borders": "1px solid #27272A",
+    "radius": "rounded-sm (4px)",
+    "shadows": {
+      "glow": "0 0 20px -5px var(--primary-glow)",
+      "card": "0 1px 2px 0 rgba(0, 0, 0, 0.5)"
+    },
+    "glassmorphism": "backdrop-blur-xl bg-black/40 border-white/5",
+    "textures": "Subtle noise overlay (opacity 0.03) on backgrounds to prevent banding."
+  },
+  "layout_strategies": {
+    "container": "max-w-7xl mx-auto px-6 md:px-12",
+    "bento_grid": "grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4",
+    "spacing": "Relaxed. Use p-6 or p-8 for cards. gap-6 for lists."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-black font-bold hover:bg-blue-400 transition-all active:scale-95 rounded-sm px-6 py-3",
+      "secondary": "bg-transparent border border-white/10 text-white hover:bg-white/5 transition-all rounded-sm px-6 py-3",
+      "ghost": "text-gray-400 hover:text-white transition-colors"
+    },
+    "cards": {
+      "default": "bg-surface border border-white/5 rounded-sm p-6 hover:border-primary/30 transition-colors",
+      "interactive": "group relative overflow-hidden bg-surface border border-white/5 rounded-sm p-6 hover:border-primary/50 transition-all cursor-pointer"
+    },
+    "inputs": {
+      "default": "bg-surface_highlight border-white/10 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm placeholder:text-gray-600 text-white h-12"
+    }
+  },
+  "image_assets": {
+    "landing_hero": "https://images.unsplash.com/photo-1557844681-b0da6a516dc9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwxfHxmdXR1cmlzdGljJTIwbWluaW1hbGlzdGljJTIwYXZhdGFyJTIwc2lsaG91ZXR0ZSUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3NDM2OTY5OXww&ixlib=rb-4.1.0&q=85",
+    "avatar_placeholder": "https://images.pexels.com/photos/7688595/pexels-photo-7688595.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "focus_mode": "https://images.unsplash.com/photo-1684488624316-774ea1824d97?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBzdHVkeWluZyUyMGxhdGUlMjBuaWdodCUyMGZvY3VzJTIwZGFyayUyMGFlc3RoZXRpY3xlbnwwfHx8fDE3NzQzNjk3MDB8MA&ixlib=rb-4.1.0&q=85",
+    "user_avatar_default": "https://images.unsplash.com/photo-1728218948405-d749e7d1851e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHw0fHxmdXR1cmlzdGljJTIwbWluaW1hbGlzdGljJTIwYXZhdGFyJTIwc2lsaG91ZXR0ZSUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3NDM2OTY5OXww&ixlib=rb-4.1.0&q=85"
+  },
+  "motion": {
+    "fade_in_up": {
+      "initial": { "opacity": 0, "y": 20 },
+      "animate": { "opacity": 1, "y": 0 },
+      "transition": { "duration": 0.5, "ease": "easeOut" }
+    },
+    "stagger_container": {
+      "hidden": { "opacity": 0 },
+      "show": {
+        "opacity": 1,
+        "transition": { "staggerChildren": 0.1 }
+      }
+    }
+  },
+  "universal_guidelines": [
+    "Dark Mode Only: Ensure 'dark' class is always applied to html/body.",
+    "No AI Slop: Do not use generic centered layouts. Use asymmetry.",
+    "Data Density: In dashboards, use tight spacing for data, but wide spacing for layout sections.",
+    "Terminal Aesthetic: Use JetBrains Mono for numbers, dates, and 'system' messages.",
+    "Call Bhaiya Mode: Must be full screen, immersive, with no distracting UI elements. Just the avatar/waveform and essential controls."
+  ],
+  "instructions_to_main_agent": "Implement the 'Bhaiya' interface as a high-fidelity dashboard. Focus on the 'Call Bhaiya' and 'Chat' features being seamless. Use the provided image URLs for placeholders. Ensure strict adherence to the color palette - no purples.",
+  "tech_stack_specifics": {
+    "framework": "React (JS)",
+    "styling": "Tailwind CSS",
+    "icons": "Lucide React",
+    "animation": "Framer Motion"
+  }
+}
