@@ -1,34 +1,48 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #27272A transparent;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+*::-webkit-scrollbar {
+  width: 4px;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.App-link {
-    color: #61dafb;
+*::-webkit-scrollbar-thumb {
+  background: #27272A;
+  border-radius: 2px;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: white;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: #050505;
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global transition */
+a, button {
+  transition: all 0.15s ease;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 1px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Shadcn overrides for dark theme */
+.dark {
+  color-scheme: dark;
 }
