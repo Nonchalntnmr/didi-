@@ -53,9 +53,9 @@ async def create_bhaiya_voice_session():
                 "instructions": bhaiya_instructions,
                 "turn_detection": {
                     "type": "server_vad",
-                    "threshold": 0.5,
-                    "prefix_padding_ms": 300,
-                    "silence_duration_ms": 800,
+                    "threshold": 0.6,
+                    "prefix_padding_ms": 500,
+                    "silence_duration_ms": 1500,
                 },
                 "input_audio_transcription": {
                     "model": "whisper-1"

@@ -1,48 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Nunito:wght@400;500;600;700;800;900&display=swap');
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #27272A transparent;
+  scrollbar-color: #E5E7EB transparent;
 }
 
-*::-webkit-scrollbar {
-  width: 4px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: #27272A;
-  border-radius: 2px;
-}
+*::-webkit-scrollbar { width: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 2px; }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
-  color: white;
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e293b;
 }
 
 body {
-  font-family: 'Manrope', sans-serif;
-  background: #050505;
-  color: white;
+  font-family: 'Nunito', sans-serif;
+  background: #FFFBF5;
+  color: #1e293b;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Global transition */
-a, button {
-  transition: all 0.15s ease;
-}
+a, button { transition: all 0.15s ease; }
 
-/* Focus styles */
 *:focus-visible {
-  outline: 1px solid #3B82F6;
+  outline: 2px solid #3B82F6;
   outline-offset: 2px;
-}
-
-/* Shadcn overrides for dark theme */
-.dark {
-  color-scheme: dark;
 }

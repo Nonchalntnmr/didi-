@@ -111,17 +111,17 @@ export default function ChatPage() {
   const ModeIcon = modeConfig[currentMode]?.icon || Sparkles;
 
   return (
-    <div className="h-screen bg-[#050505] text-white flex flex-col">
+    <div className="h-screen bg-[#FFFBF5] text-[#1e293b] flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-white/5 backdrop-blur-xl bg-[#050505]/80">
+      <div className="flex-shrink-0 border-b border-gray-100 backdrop-blur-xl bg-[#FFFBF5]/80">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button data-testid="chat-back-btn" variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-white">
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-sm flex items-center justify-center" style={{ backgroundColor: `${modeConfig[currentMode]?.color}20` }}>
-                <ModeIcon className="w-4 h-4" style={{ color: modeConfig[currentMode]?.color }} />
+              <div className="w-8 h-8 rounded-full overflow-hidden shadow-sm" style={{ backgroundColor: `${modeConfig[currentMode]?.color}15` }}>
+                <img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Didi" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="text-sm font-semibold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
@@ -165,13 +165,13 @@ export default function ChatPage() {
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
           {messages.length === 0 && !isTyping && (
             <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-              <div className="w-16 h-16 rounded-sm bg-[#3B82F6]/10 flex items-center justify-center mb-4">
-                <Sparkles className="w-8 h-8 text-[#3B82F6]" />
+              <div className="w-16 h-16 rounded-full overflow-hidden shadow-md mb-4">
+                <img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Didi" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-lg font-semibold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>
+              <h3 className="text-lg font-bold tracking-tight mb-2" style={{ fontFamily: "Nunito, sans-serif" }}>
                 What's on your mind?
               </h3>
-              <p className="text-sm text-gray-500 max-w-sm">
+              <p className="text-sm text-gray-400 max-w-sm">
                 Talk to Didi about anything — homework, how you're feeling, your dreams, or just to chat.
               </p>
             </div>
@@ -188,10 +188,10 @@ export default function ChatPage() {
               >
                 <div
                   data-testid={`chat-msg-${msg.role}-${i}`}
-                  className={`max-w-[80%] rounded-sm px-4 py-3 text-sm leading-relaxed ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-[#3B82F6] text-black font-medium"
-                      : "bg-[#0A0A0A] border border-white/5 text-gray-300"
+                      ? "bg-[#3B82F6] text-white"
+                      : "bg-white border border-gray-100 text-gray-700 shadow-sm"
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -208,7 +208,7 @@ export default function ChatPage() {
           {/* Typing indicator */}
           {isTyping && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-              <div className="max-w-[80%] rounded-sm px-4 py-3 text-sm leading-relaxed bg-[#0A0A0A] border border-white/5 text-gray-300">
+              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed bg-white border border-gray-100 text-gray-700 shadow-sm">
                 <p className="whitespace-pre-wrap">{typingText}<span className="inline-block w-0.5 h-4 bg-[#3B82F6] ml-0.5 animate-pulse" /></p>
               </div>
             </motion.div>
@@ -227,7 +227,7 @@ export default function ChatPage() {
                 key={i}
                 data-testid={`quick-action-${i}`}
                 onClick={() => sendMessage(qa.msg)}
-                className="flex-shrink-0 px-4 py-2 rounded-sm text-xs font-medium bg-[#0A0A0A] border border-white/5 text-gray-400 hover:border-[#3B82F6]/30 hover:text-white transition-all"
+                className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold bg-white border border-gray-100 text-gray-500 hover:border-[#3B82F6]/30 hover:text-[#1e293b] transition-all shadow-sm"
               >
                 {qa.label}
               </button>
@@ -237,13 +237,13 @@ export default function ChatPage() {
       )}
 
       {/* Input */}
-      <div className="flex-shrink-0 border-t border-white/5 bg-[#050505]">
+      <div className="flex-shrink-0 border-t border-gray-100 bg-[#FFFBF5]">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
             <input
               ref={inputRef}
               data-testid="chat-input"
-              className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-sm px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:border-[#3B82F6] focus:outline-none transition-colors"
+              className="flex-1 bg-white border border-gray-200 rounded-full px-4 py-3 text-sm text-[#1e293b] placeholder:text-gray-300 focus:border-[#3B82F6] focus:outline-none shadow-sm"
               placeholder="Talk to Didi..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -254,7 +254,7 @@ export default function ChatPage() {
               data-testid="chat-send-btn"
               onClick={() => sendMessage()}
               disabled={!input.trim() || loading}
-              className="bg-[#3B82F6] text-black hover:bg-blue-400 rounded-sm px-4 py-3 disabled:opacity-30"
+              className="bg-[#3B82F6] text-white hover:bg-blue-500 rounded-full px-4 py-3 disabled:opacity-30 shadow-sm"
             >
               <Send className="w-4 h-4" />
             </Button>

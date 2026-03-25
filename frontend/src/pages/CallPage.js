@@ -243,12 +243,12 @@ export default function CallPage() {
   const fmt = (s) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
   return (
-    <div className="fixed inset-0 bg-black text-white overflow-hidden select-none" onClick={() => callStatus === "active" && setShowControls(true)}>
+    <div className="fixed inset-0 bg-[#FFFBF5] text-[#1e293b] overflow-hidden select-none" onClick={() => callStatus === "active" && setShowControls(true)}>
 
-      {/* ═══ BHAIYA'S SCREEN ═══ */}
-      <div className="absolute inset-0 bg-[#050505] flex items-center justify-center">
+      {/* ═══ DIDI'S SCREEN ═══ */}
+      <div className="absolute inset-0 bg-[#FFFBF5] flex items-center justify-center">
         <div className={`absolute w-[600px] h-[600px] rounded-full transition-all duration-500 ${
-          isAISpeaking ? "bg-[#3B82F6]/10 scale-110" : isUserSpeaking ? "bg-[#10B981]/6 scale-100" : "bg-white/[0.01] scale-90"
+          isAISpeaking ? "bg-blue-100/60 scale-110" : isUserSpeaking ? "bg-emerald-100/40 scale-100" : "bg-gray-100/20 scale-90"
         }`} style={{ filter: "blur(120px)" }} />
 
         <div className="relative flex flex-col items-center z-10 max-w-lg">
@@ -259,8 +259,8 @@ export default function CallPage() {
               borderColor: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "rgba(255,255,255,0.06)"
             }}
             transition={{ repeat: isAISpeaking ? Infinity : 0, duration: 1.8, ease: "easeInOut" }}
-            className="w-36 h-36 md:w-48 md:h-48 rounded-full border-[3px] flex items-center justify-center relative"
-            style={{ background: "radial-gradient(circle at 40% 35%, #111827, #050505)" }}
+            style={{ borderColor: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "#e5e7eb" }}
+            className="w-36 h-36 md:w-48 md:h-48 rounded-full border-[3px] flex items-center justify-center relative bg-white shadow-lg overflow-hidden"
           >
             <img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Anushka Didi" className="w-full h-full object-cover rounded-full" />
             {isAISpeaking && (
@@ -274,9 +274,9 @@ export default function CallPage() {
             )}
           </motion.div>
 
-          <p className="text-lg font-bold mt-5 tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
+          <p className="text-lg font-extrabold mt-5 tracking-tight" style={{ fontFamily: "Nunito, sans-serif" }}>Anushka Didi</p>
           {callStatus === "active" && (
-            <p className="text-xs font-mono mt-1" style={{ fontFamily: "JetBrains Mono, monospace", color: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "#666" }}>
+            <p className="text-xs font-mono mt-1" style={{ fontFamily: "JetBrains Mono, monospace", color: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "#9CA3AF" }}>
               {isAISpeaking ? "Speaking..." : isUserSpeaking ? "Listening..." : fmt(callDuration)}
             </p>
           )}
@@ -287,7 +287,7 @@ export default function CallPage() {
               {waveAmplitudes.map((amp, i) => (
                 <motion.div key={i} animate={{ height: amp * 28 }} transition={{ duration: 0.06 }}
                   className="w-[2px] rounded-full"
-                  style={{ backgroundColor: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "#1a1a1a" }}
+                  style={{ backgroundColor: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "#E5E7EB" }}
                 />
               ))}
             </div>
@@ -299,13 +299,13 @@ export default function CallPage() {
               {transcript && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-center">
                   <p className="text-[10px] text-[#10B981] font-mono uppercase tracking-wider mb-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>You</p>
-                  <p className="text-sm text-white/70" data-testid="live-transcript">"{transcript}"</p>
+                  <p className="text-sm text-gray-600" data-testid="live-transcript">"{transcript}"</p>
                 </motion.div>
               )}
               {aiText && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-center">
                   <p className="text-[10px] text-[#3B82F6] font-mono uppercase tracking-wider mb-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>Didi</p>
-                  <p className="text-sm text-white/50 leading-relaxed">{aiText.length > 300 ? "..." + aiText.slice(-300) : aiText}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">{aiText.length > 300 ? "..." + aiText.slice(-300) : aiText}</p>
                 </motion.div>
               )}
             </div>
@@ -318,18 +318,18 @@ export default function CallPage() {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.3 }}
-        className="absolute top-5 right-5 z-30 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl"
+        className="absolute top-5 right-5 z-30 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-xl"
         style={{ width: "140px", height: "200px" }}
       >
         {isCameraOn ? (
           <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" style={{ transform: "scaleX(-1)" }} />
         ) : (
-          <div className="w-full h-full bg-[#121212] flex items-center justify-center">
-            <VideoOff className="w-6 h-6 text-gray-600" />
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+            <VideoOff className="w-6 h-6 text-gray-300" />
           </div>
         )}
         <div className="absolute bottom-1.5 left-1.5 right-1.5">
-          <p className="text-[9px] font-medium text-white bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-center truncate">
+          <p className="text-[9px] font-semibold text-white bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-center truncate">
             {user?.name?.split(" ")[0] || "You"}
           </p>
         </div>
@@ -338,13 +338,13 @@ export default function CallPage() {
 
       {/* ═══ IDLE ═══ */}
       {callStatus === "idle" && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#050505]">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#FFFBF5]">
           <div className="text-center">
             <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white/10 mx-auto mb-6">
               <img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Anushka Didi" className="w-full h-full object-cover" />
             </div>
             <p className="text-xl font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
-            <p className="text-xs text-gray-500 mb-8">AI Voice &middot; Your caring older sister</p>
+            <p className="text-xs text-gray-400 mb-8">AI Voice &middot; Your caring older sister</p>
             {statusMsg && <p className="text-xs text-red-400 mb-4">{statusMsg}</p>}
             <button
               data-testid="start-call-btn"
@@ -363,14 +363,14 @@ export default function CallPage() {
       {/* ═══ CONNECTING ═══ */}
       <AnimatePresence>
         {callStatus === "connecting" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-black/90 flex items-center justify-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-40 bg-[#FFFBF5]/90 backdrop-blur-sm flex items-center justify-center">
             <div className="text-center">
               <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 2 }}
                 className="w-24 h-24 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center mx-auto mb-6">
                 <Phone className="w-10 h-10 text-[#10B981]" />
               </motion.div>
-              <p className="text-lg font-bold mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Calling Didi...</p>
-              <p className="text-xs text-gray-500 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{statusMsg || "Connecting"}</p>
+              <p className="text-lg font-extrabold mb-1" style={{ fontFamily: "Nunito, sans-serif" }}>Calling Didi...</p>
+              <p className="text-xs text-gray-400 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{statusMsg || "Connecting"}</p>
             </div>
           </motion.div>
         )}
@@ -384,23 +384,23 @@ export default function CallPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className="absolute bottom-0 left-0 right-0 z-30 pb-10 pt-24"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)" }}
+            style={{ background: "linear-gradient(to top, rgba(255,251,245,0.9) 0%, transparent 100%)" }}
           >
             <div className="flex items-center justify-center gap-5">
               <button data-testid="call-camera-btn" onClick={(e) => { e.stopPropagation(); toggleCamera(); }}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all backdrop-blur-md ${!isCameraOn ? "bg-white/25 text-white" : "bg-white/10 text-white/70"}`}>
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-md ${!isCameraOn ? "bg-gray-200 text-gray-600" : "bg-white text-gray-500 border border-gray-200"}`}>
                 {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
               </button>
               <button data-testid="call-mute-btn" onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all backdrop-blur-md ${isMuted ? "bg-red-500/30 text-red-300" : "bg-white/10 text-white/70"}`}>
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-md ${isMuted ? "bg-red-100 text-red-500" : "bg-white text-gray-500 border border-gray-200"}`}>
                 {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
               <button data-testid="call-end-btn" onClick={(e) => { e.stopPropagation(); endCall(); }}
-                className="w-[68px] h-[68px] rounded-full bg-red-500 hover:bg-red-400 text-white flex items-center justify-center transition-all active:scale-90 shadow-xl shadow-red-500/30">
+                className="w-[68px] h-[68px] rounded-full bg-red-500 hover:bg-red-400 text-white flex items-center justify-center transition-all active:scale-90 shadow-xl shadow-red-200">
                 <PhoneOff className="w-7 h-7" />
               </button>
               <button data-testid="call-switch-chat-btn" onClick={(e) => { e.stopPropagation(); navigate("/chat"); }}
-                className="w-14 h-14 rounded-full bg-white/10 text-white/70 flex items-center justify-center transition-all backdrop-blur-md">
+                className="w-14 h-14 rounded-full bg-white text-gray-500 border border-gray-200 flex items-center justify-center transition-all shadow-md">
                 <MessageSquare className="w-5 h-5" />
               </button>
             </div>
