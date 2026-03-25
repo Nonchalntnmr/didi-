@@ -1,12 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Brain, Flame, Phone, Zap, Target, MessageSquare, Star, Crosshair, Trophy, Sparkles } from "lucide-react";
+import { ArrowRight, Brain, Flame, Phone, Zap, Target, MessageSquare, Star, Crosshair, Trophy, Sparkles, Globe, Lock } from "lucide-react";
 import { Button } from "../components/ui/button";
 
-const fadeUp = { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, ease: "easeOut" } };
-const stagger = { animate: { transition: { staggerChildren: 0.1 } } };
-
-// Typewriter hook
 function useTypewriter(texts, speed = 60, pause = 2000) {
   const [display, setDisplay] = useState("");
   const [idx, setIdx] = useState(0);
@@ -24,28 +20,26 @@ function useTypewriter(texts, speed = 60, pause = 2000) {
         if (charIdx === 0) { setDeleting(false); setIdx((idx + 1) % texts.length); }
         else setCharIdx(c => c - 1);
       }
-    }, deleting ? 30 : speed);
+    }, deleting ? 25 : speed);
     return () => clearTimeout(timer);
   }, [charIdx, deleting, idx, texts, speed, pause]);
   return display;
 }
 
-// Conversation demo
-const demoConvo = [
-  { role: "user", text: "I want to get fit but I keep quitting after a week" },
-  { role: "ai", text: "Real talk — you're not quitting because you're lazy. You're quitting because your plan is too aggressive. Let's build something you'll actually stick to. What's your schedule look like?" },
-  { role: "user", text: "I'm free mornings before class" },
-  { role: "ai", text: "Perfect. Here's your Week 1 plan — stupidly simple on purpose:\n\nMon/Wed/Fri: 20-min walk + 10 pushups\nTue/Thu: 15-min stretch\n\nThat's it. No gym. No protein shakes. Just build the habit first. I'll check in with you daily. Deal?" },
+const demoMsgs = [
+  { role: "user", text: "I keep procrastinating on my coding project" },
+  { role: "ai", text: "Let's be real — you're not procrastinating, you're overwhelmed. Break it into 30-min blocks. What's the ONE smallest thing you can do right now?" },
+  { role: "user", text: "I guess set up the project folder structure" },
+  { role: "ai", text: "That's it. Do that in the next 15 minutes. Don't touch anything else. I'll check back. Go." },
 ];
 
 export default function LandingPage() {
   const [visibleMsgs, setVisibleMsgs] = useState([]);
-  const [stats] = useState({ users: 2847, messages: 148000, modes: 7, languages: 25 });
-  const typed = useTypewriter(["studying for exams", "building discipline", "getting fit", "managing stress", "finding direction"], 70, 1800);
+  const typed = useTypewriter(["studying for exams", "building discipline", "getting fit", "managing stress", "finding direction", "learning to code"], 65, 1800);
 
   useEffect(() => {
-    demoConvo.forEach((msg, i) => {
-      setTimeout(() => setVisibleMsgs(prev => [...prev, msg]), 1500 + i * 2200);
+    demoMsgs.forEach((msg, i) => {
+      setTimeout(() => setVisibleMsgs(prev => [...prev, msg]), 800 + i * 2000);
     });
   }, []);
 
@@ -57,264 +51,258 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-hidden">
-      {/* Noise */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.015] z-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
-
-      {/* Dot grid background */}
-      <div className="fixed inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, rgba(59,130,246,0.06) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+      <div className="fixed inset-0 pointer-events-none opacity-[0.012] z-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
+      <div className="fixed inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, rgba(59,130,246,0.04) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
       {/* Nav */}
       <nav className="fixed top-0 w-full z-40 backdrop-blur-xl bg-[#050505]/70 border-b border-white/[0.03]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-sm bg-[#3B82F6] flex items-center justify-center">
-              <Brain className="w-4 h-4 text-black" />
-            </div>
+            <div className="w-8 h-8 rounded-sm bg-[#3B82F6] flex items-center justify-center"><Brain className="w-4 h-4 text-black" /></div>
             <span className="font-bold text-base tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }} data-testid="brand-logo">BHAIYA</span>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="text-xs text-gray-500 hover:text-white transition-colors hidden md:block">See it in action</button>
-            <Button data-testid="nav-login-btn" onClick={handleLogin} className="bg-white text-black font-bold hover:bg-gray-200 transition-all active:scale-95 rounded-sm px-5 py-2 text-sm">
+            <Button data-testid="nav-login-btn" onClick={handleLogin} className="bg-white text-black font-bold hover:bg-gray-200 active:scale-95 rounded-sm px-5 py-2 text-sm">
               Get Started <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-8 md:pt-40 md:pb-16">
-        <div className="absolute top-20 right-0 w-[700px] h-[700px] bg-[#3B82F6]/[0.03] rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute bottom-0 left-10 w-[400px] h-[400px] bg-[#10B981]/[0.02] rounded-full blur-[100px] pointer-events-none" />
-
+      {/* ═══ HERO ═══ Split layout with app preview */}
+      <section className="relative pt-28 pb-8 md:pt-36 md:pb-12">
+        <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-[#3B82F6]/[0.04] rounded-full blur-[150px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <motion.div variants={stagger} initial="initial" animate="animate" className="max-w-4xl">
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] mb-8">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400" style={{ fontFamily: "JetBrains Mono, monospace" }}>Live &middot; {stats.languages} Languages</span>
-            </motion.div>
-
-            <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-[5.5rem] font-bold tracking-[-0.04em] leading-[0.9] mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>
-              Stop guessing.
-            </motion.h1>
-            <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-[5.5rem] font-bold tracking-[-0.04em] leading-[0.9] mb-8">
-              <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 40%, #93C5FD 70%, #3B82F6 100%)", fontFamily: "Manrope, sans-serif" }}>Start improving.</span>
-            </motion.h1>
-
-            <motion.p variants={fadeUp} className="text-base md:text-lg text-gray-400 max-w-lg leading-relaxed mb-4">
-              Your AI mentor for <span className="text-white font-medium">{typed}<span className="animate-pulse text-[#3B82F6]">|</span></span>
-            </motion.p>
-            <motion.p variants={fadeUp} className="text-sm text-gray-500 max-w-lg mb-10">
-              Not a chatbot. A real mentor you can text, voice call, and FaceTime — who remembers everything and holds you accountable.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-4 mb-12">
-              <Button data-testid="hero-cta-btn" onClick={handleLogin} className="bg-[#3B82F6] text-white font-bold hover:bg-blue-500 transition-all active:scale-95 rounded-sm px-8 py-3.5 text-base shadow-lg shadow-[#3B82F6]/20">
-                Start Free <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <button onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="text-gray-400 hover:text-white text-sm flex items-center gap-2 transition-colors">
-                <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center"><Sparkles className="w-3.5 h-3.5" /></div>
-                See Bhaiya in action
-              </button>
-            </motion.div>
-
-            {/* Stats */}
-            <motion.div variants={fadeUp} className="flex items-center gap-8 pt-8 border-t border-white/[0.04]">
-              {[
-                { val: `${stats.modes}`, label: "AI Modes", color: "#3B82F6" },
-                { val: `${stats.languages}`, label: "Languages", color: "#10B981" },
-                { val: "FaceTime", label: "Voice Calls", color: "#F59E0B" },
-                { val: "Memory", label: "Remembers You", color: "#A78BFA" },
-              ].map((s, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-1 h-6 rounded-full" style={{ backgroundColor: s.color }} />
-                  <div>
-                    <p className="text-sm font-bold text-white">{s.val}</p>
-                    <p className="text-[10px] text-gray-500">{s.label}</p>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Live Demo */}
-      <section id="demo" className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#3B82F6] mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>Live Preview</p>
-              <h2 className="text-3xl md:text-4xl tracking-tighter font-bold mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>This is how Bhaiya talks</h2>
-              <p className="text-sm text-gray-400 leading-relaxed mb-6 max-w-md">No corporate AI speak. No generic responses. Bhaiya talks like a real person who actually gives a damn about your progress.</p>
-              <div className="space-y-3">
-                {["Builds real plans, not generic advice", "References your past goals & progress", "Switches modes based on what you need", "Calls you out when you're slacking"].map((t, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-gray-300">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-                    {t}
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Copy */}
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] mb-6">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400" style={{ fontFamily: "JetBrains Mono, monospace" }}>Live &middot; 25 Languages</span>
               </div>
-            </motion.div>
-
-            {/* Chat preview */}
-            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-              className="rounded-sm border border-white/[0.06] bg-[#0A0A0A] overflow-hidden" data-testid="demo-chat">
-              <div className="px-4 py-3 border-b border-white/[0.04] flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
-                  <span className="text-[8px] font-bold text-[#3B82F6]">B</span>
-                </div>
-                <span className="text-xs font-semibold">Bhaiya</span>
-                <span className="text-[9px] text-gray-600 font-mono ml-1" style={{ fontFamily: "JetBrains Mono, monospace" }}>COACH MODE</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[0.92] mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>
+                Stop guessing.
+              </h1>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[0.92] mb-6">
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #3B82F6 100%)", fontFamily: "Manrope, sans-serif" }}>Start improving.</span>
+              </h1>
+              <p className="text-sm md:text-base text-gray-400 max-w-md leading-relaxed mb-2">
+                Your AI mentor for <span className="text-white font-medium">{typed}<span className="animate-pulse text-[#3B82F6]">|</span></span>
+              </p>
+              <p className="text-xs text-gray-500 max-w-md mb-8">Text, voice call, and FaceTime a mentor who remembers everything about you.</p>
+              <div className="flex flex-wrap items-center gap-3 mb-8">
+                <Button data-testid="hero-cta-btn" onClick={handleLogin} className="bg-[#3B82F6] text-white font-bold hover:bg-blue-500 active:scale-95 rounded-sm px-7 py-3 text-sm shadow-lg shadow-[#3B82F6]/25">
+                  Start Free <ArrowRight className="w-4 h-4 ml-1.5" />
+                </Button>
+                <button onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="text-gray-400 hover:text-white text-xs flex items-center gap-2 transition-colors">
+                  <div className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center"><Sparkles className="w-3 h-3" /></div>
+                  See it in action
+                </button>
               </div>
-              <div className="p-4 space-y-3 min-h-[320px]">
-                {visibleMsgs.map((msg, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] rounded-sm px-3.5 py-2.5 text-xs leading-relaxed ${
-                      msg.role === "user" ? "bg-[#3B82F6] text-white" : "bg-[#121212] text-gray-300 border border-white/[0.04]"
-                    }`}>
-                      <p className="whitespace-pre-wrap">{msg.text}</p>
+              <div className="flex items-center gap-6">
+                {[
+                  { val: "7", label: "AI Modes", color: "#3B82F6" },
+                  { val: "25", label: "Languages", color: "#10B981" },
+                  { val: "FaceTime", label: "Voice Calls", color: "#F59E0B" },
+                ].map((s, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-1 h-5 rounded-full" style={{ backgroundColor: s.color }} />
+                    <div>
+                      <p className="text-xs font-bold">{s.val}</p>
+                      <p className="text-[9px] text-gray-600">{s.label}</p>
                     </div>
-                  </motion.div>
-                ))}
-                {visibleMsgs.length < demoConvo.length && (
-                  <div className="flex items-center gap-1.5 px-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
-                )}
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right - App Preview Mockup */}
+            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
+              className="hidden lg:block relative">
+              <div className="relative mx-auto" style={{ width: "380px" }}>
+                {/* Glow behind */}
+                <div className="absolute -inset-8 bg-[#3B82F6]/[0.06] rounded-full blur-[60px]" />
+
+                {/* Phone frame */}
+                <div className="relative rounded-2xl border border-white/[0.08] bg-[#0A0A0A] overflow-hidden shadow-2xl">
+                  {/* Status bar */}
+                  <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/[0.04]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-sm bg-[#3B82F6] flex items-center justify-center"><span className="text-[6px] font-black text-black">B</span></div>
+                      <span className="text-[10px] font-bold">Bhaiya</span>
+                    </div>
+                    <span className="text-[8px] font-mono text-[#10B981]" style={{ fontFamily: "JetBrains Mono, monospace" }}>COACH MODE</span>
+                  </div>
+
+                  {/* Chat messages */}
+                  <div className="p-4 space-y-3 min-h-[360px] max-h-[360px] overflow-hidden">
+                    {visibleMsgs.map((msg, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4 }}
+                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-[11px] leading-relaxed ${
+                          msg.role === "user" ? "bg-[#3B82F6] text-white rounded-br-sm" : "bg-[#161616] text-gray-300 border border-white/[0.04] rounded-bl-sm"
+                        }`}>
+                          {msg.text}
+                        </div>
+                      </motion.div>
+                    ))}
+                    {visibleMsgs.length < demoMsgs.length && (
+                      <div className="flex gap-1 px-1">
+                        {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Input bar */}
+                  <div className="px-4 py-3 border-t border-white/[0.04] flex items-center gap-2">
+                    <div className="flex-1 bg-[#161616] rounded-full px-4 py-2 text-[10px] text-gray-500">Talk to Bhaiya...</div>
+                    <div className="w-7 h-7 rounded-full bg-[#3B82F6] flex items-center justify-center"><ArrowRight className="w-3 h-3 text-black" /></div>
+                  </div>
+                </div>
+
+                {/* Floating badges */}
+                <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                  className="absolute -right-12 top-16 bg-[#0A0A0A] border border-white/[0.06] rounded-lg px-3 py-2 shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3 h-3 text-[#10B981]" />
+                    <span className="text-[9px] font-medium">FaceTime</span>
+                  </div>
+                </motion.div>
+                <motion.div animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }}
+                  className="absolute -left-10 bottom-24 bg-[#0A0A0A] border border-white/[0.06] rounded-lg px-3 py-2 shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-3 h-3 text-[#F59E0B]" />
+                    <span className="text-[9px] font-medium">25 Languages</span>
+                  </div>
+                </motion.div>
+                <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }}
+                  className="absolute -right-8 bottom-12 bg-[#0A0A0A] border border-white/[0.06] rounded-lg px-3 py-2 shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-3 h-3 text-[#A78BFA]" />
+                    <span className="text-[9px] font-medium">Memory</span>
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 md:py-28 border-t border-white/[0.03]">
+      {/* ═══ SOCIAL PROOF BAR ═══ */}
+      <section className="py-8 border-y border-white/[0.03]">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-center gap-8 md:gap-16 text-center">
+          {[
+            { val: "7", label: "AI Conversation Modes" },
+            { val: "25", label: "Languages Supported" },
+            { val: "24/7", label: "Always Available" },
+            { val: "100%", label: "Private & Safe" },
+          ].map((s, i) => (
+            <div key={i}>
+              <p className="text-lg md:text-xl font-bold" style={{ fontFamily: "JetBrains Mono, monospace" }}>{s.val}</p>
+              <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ DEMO SECTION ═══ */}
+      <section id="demo" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-xs font-mono uppercase tracking-[0.3em] text-gray-600 mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>Everything you need</p>
-            <h2 className="text-3xl md:text-4xl tracking-tighter font-bold" style={{ fontFamily: "Manrope, sans-serif" }}>Built different</h2>
+            <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#3B82F6] mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>How Bhaiya talks</p>
+            <h2 className="text-3xl md:text-4xl tracking-tighter font-bold mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>No corporate AI speak</h2>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">Real conversations. Actual plans. Someone who remembers what you said last week.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Bento feature grid */}
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            {/* Large - FaceTime */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              className="md:col-span-3 group relative rounded-sm p-8 border border-[#10B981]/15 hover:border-[#10B981]/30 transition-all overflow-hidden"
+              style={{ background: "linear-gradient(160deg, #052e16 0%, #0A0A0A 60%)" }} data-testid="feature-card-0">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#10B981]/[0.05] rounded-full blur-[60px] pointer-events-none" />
+              <Phone className="w-8 h-8 text-[#10B981] mb-4" />
+              <h3 className="text-xl font-bold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>FaceTime Calls</h3>
+              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">Your camera on. Bhaiya listens in real-time, responds with voice. Live captions. Like calling your smartest friend.</p>
+            </motion.div>
+            {/* Large - Memory */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 }}
+              className="md:col-span-3 group relative rounded-sm p-8 border border-[#3B82F6]/15 hover:border-[#3B82F6]/30 transition-all overflow-hidden"
+              style={{ background: "linear-gradient(160deg, #0c1a3a 0%, #0A0A0A 60%)" }} data-testid="feature-card-1">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#3B82F6]/[0.05] rounded-full blur-[60px] pointer-events-none" />
+              <Brain className="w-8 h-8 text-[#3B82F6] mb-4" />
+              <h3 className="text-xl font-bold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>Remembers Everything</h3>
+              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">"You said last week you wanted to wake up earlier — how's that going?" Bhaiya tracks your goals, habits, and struggles.</p>
+            </motion.div>
+            {/* Small cards */}
             {[
-              { icon: Phone, title: "FaceTime Calls", desc: "Video call your AI mentor. Your camera on, Bhaiya listens and responds with voice. Like FaceTime with your smartest friend.", color: "#F59E0B", featured: true },
-              { icon: Brain, title: "Memory System", desc: "Remembers your goals, habits, struggles. References them naturally. \"You said you wanted to wake up earlier — how's that going?\"", color: "#3B82F6" },
-              { icon: Flame, title: "Daily Challenges", desc: "3 new challenges every day. Earn XP, build streaks. Gamified self-improvement that actually works.", color: "#EF4444" },
-              { icon: Target, title: "Routines & Plans", desc: "Create study plans, workout routines, daily habits. Track completion with a 7-day calendar.", color: "#10B981" },
-              { icon: Zap, title: "7 AI Modes", desc: "Educator, Coach, Wellness, Listener, Future You, Brutal Honesty. Auto-detects or manual switch.", color: "#A78BFA" },
-              { icon: Crosshair, title: "Focus Mode", desc: "Pomodoro timer with Bhaiya tips. Track your deep work sessions. Build the focus muscle.", color: "#EC4899" },
+              { icon: Flame, title: "Daily Challenges", desc: "3 new daily. Earn XP. Build streaks.", color: "#EF4444", bg: "#1a0505" },
+              { icon: Target, title: "Routines & Plans", desc: "Study plans. Workout routines. Track daily.", color: "#10B981", bg: "#051a0f" },
+              { icon: Zap, title: "7 AI Modes", desc: "Educator. Coach. Brutal Honesty. Auto-detect.", color: "#A78BFA", bg: "#0f051a" },
+              { icon: Crosshair, title: "Focus Mode", desc: "Pomodoro timer. Deep work. Track hours.", color: "#EC4899", bg: "#1a0515" },
+              { icon: Star, title: "Bhaiya Wrapped", desc: "Monthly AI progress report. Shareable.", color: "#F59E0B", bg: "#1a1005" },
+              { icon: Lock, title: "Safe & Private", desc: "No harmful advice. Escalates serious issues.", color: "#6B7280", bg: "#0A0A0A" },
             ].map((f, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                data-testid={`feature-card-${i}`}
-                className={`group relative rounded-sm p-6 transition-all hover:translate-y-[-2px] ${
-                  f.featured ? "border border-[#F59E0B]/15 hover:border-[#F59E0B]/30 bg-gradient-to-b from-[#F59E0B]/[0.03] to-transparent" : "border border-white/[0.04] hover:border-white/10 bg-[#0A0A0A]"
-                }`}>
-                <div className="w-10 h-10 rounded-sm flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ backgroundColor: `${f.color}10` }}>
-                  <f.icon className="w-5 h-5" style={{ color: f.color }} />
-                </div>
-                <h3 className="text-base font-semibold mb-1.5 tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>{f.title}</h3>
-                <p className="text-xs text-gray-400 leading-relaxed">{f.desc}</p>
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 * i }}
+                data-testid={`feature-card-${i + 2}`}
+                className="md:col-span-2 group rounded-sm p-5 border border-white/[0.04] hover:border-white/10 transition-all"
+                style={{ background: `linear-gradient(180deg, ${f.bg} 0%, #0A0A0A 100%)` }}>
+                <f.icon className="w-5 h-5 mb-3 group-hover:scale-110 transition-transform" style={{ color: f.color }} />
+                <h3 className="text-sm font-semibold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>{f.title}</h3>
+                <p className="text-[10px] text-gray-500 leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Modes */}
+      {/* ═══ MODES ═══ */}
       <section className="py-20 border-t border-white/[0.03]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <p className="text-xs font-mono uppercase tracking-[0.3em] text-gray-600 mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>Intelligence System</p>
-              <h2 className="text-3xl tracking-tighter font-bold mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>One mentor,<br />seven modes</h2>
-              <p className="text-sm text-gray-400 leading-relaxed mb-6">Bhaiya auto-detects what you need. Or switch manually. Each mode changes how Bhaiya thinks, talks, and responds.</p>
-              <Button data-testid="modes-cta" onClick={handleLogin} className="bg-[#3B82F6] text-white font-bold hover:bg-blue-500 rounded-sm px-6 py-3 text-sm shadow-lg shadow-[#3B82F6]/20">
-                Try All Modes
-              </Button>
+              <h2 className="text-3xl tracking-tighter font-bold mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>One mentor,<br />seven modes</h2>
+              <p className="text-sm text-gray-400 leading-relaxed mb-6 max-w-sm">Auto-detects what you need. Or switch manually. Each mode changes how Bhaiya thinks and talks.</p>
+              <Button data-testid="modes-cta" onClick={handleLogin} className="bg-[#3B82F6] text-white font-bold hover:bg-blue-500 rounded-sm px-6 py-3 text-sm shadow-lg shadow-[#3B82F6]/20">Try All Modes</Button>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-2">
+            <div className="space-y-2">
               {[
                 { mode: "Educator", color: "#3B82F6", desc: "Breaks down concepts, teaches thinking" },
-                { mode: "Performance Coach", color: "#F59E0B", desc: "Builds discipline, creates routines" },
-                { mode: "Wellness Guide", color: "#10B981", desc: "Food, sleep, habits, practical advice" },
+                { mode: "Coach", color: "#F59E0B", desc: "Builds discipline, creates routines" },
+                { mode: "Wellness", color: "#10B981", desc: "Food, sleep, habits, practical advice" },
                 { mode: "Listener", color: "#A78BFA", desc: "Emotional support, reflective talk" },
                 { mode: "Future You", color: "#60A5FA", desc: "Speaks as your successful future self" },
                 { mode: "Brutal Honesty", color: "#EF4444", desc: "Direct, no-BS, tough love" },
               ].map((m, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
-                  className="flex items-center gap-4 p-3 rounded-sm bg-[#0A0A0A] border border-white/[0.04] hover:border-white/10 transition-all group cursor-default">
-                  <div className="w-1.5 h-8 rounded-full transition-all group-hover:h-10" style={{ backgroundColor: m.color }} />
-                  <div>
-                    <p className="text-sm font-semibold">{m.mode}</p>
-                    <p className="text-[10px] text-gray-500">{m.desc}</p>
-                  </div>
+                <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                  className="flex items-center gap-4 p-3 rounded-sm bg-[#0A0A0A] border border-white/[0.04] hover:border-white/10 transition-all group">
+                  <div className="w-1.5 h-8 rounded-full group-hover:h-10 transition-all" style={{ backgroundColor: m.color }} />
+                  <div><p className="text-sm font-semibold">{m.mode}</p><p className="text-[10px] text-gray-500">{m.desc}</p></div>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Wrapped teaser */}
-      <section className="py-20 border-t border-white/[0.03]">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="relative overflow-hidden rounded-sm border border-white/[0.06] p-8 md:p-12" style={{ background: "linear-gradient(135deg, #0A0A0A, #111827, #0A0A0A)" }}>
-            <div className="absolute top-0 right-0 w-80 h-80 bg-[#F59E0B]/[0.04] rounded-full blur-[100px] pointer-events-none" />
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 mb-4">
-                  <Trophy className="w-3 h-3 text-[#F59E0B]" />
-                  <span className="text-[10px] font-mono text-[#F59E0B] uppercase tracking-wider" style={{ fontFamily: "JetBrains Mono, monospace" }}>New</span>
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold tracking-tighter mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya Wrapped</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">Monthly AI-generated progress report. Like Spotify Wrapped but for your personal growth. Shareable, insightful, and brutally honest.</p>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-48 h-64 rounded-sm bg-[#0A0A0A] border border-white/[0.06] p-4 flex flex-col items-center justify-center text-center rotate-3 shadow-2xl">
-                  <Star className="w-6 h-6 text-[#F59E0B] mb-2" />
-                  <p className="text-xs font-bold mb-1">Your Month</p>
-                  <p className="text-[10px] text-gray-500 mb-3">AI-generated insights</p>
-                  <div className="space-y-1 w-full">
-                    <div className="h-1.5 bg-[#3B82F6]/20 rounded-full w-full" />
-                    <div className="h-1.5 bg-[#10B981]/20 rounded-full w-3/4" />
-                    <div className="h-1.5 bg-[#F59E0B]/20 rounded-full w-1/2" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
+      {/* ═══ CTA ═══ */}
       <section className="py-28 border-t border-white/[0.03]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>
-              Your move.
-            </h2>
-            <p className="text-gray-400 mb-8 text-sm">
-              Stop scrolling. Start building the life you actually want. Bhaiya's waiting.
-            </p>
-            <Button data-testid="cta-bottom-btn" onClick={handleLogin} className="bg-white text-black font-bold hover:bg-gray-200 transition-all active:scale-95 rounded-sm px-12 py-4 text-base shadow-xl">
-              Get Started Free
-            </Button>
-            <p className="text-[10px] text-gray-600 mt-4 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>No credit card &middot; Works in {stats.languages} languages</p>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>Your move.</h2>
+            <p className="text-gray-400 mb-8 text-sm">Stop scrolling. Start building the life you actually want.</p>
+            <Button data-testid="cta-bottom-btn" onClick={handleLogin} className="bg-white text-black font-bold hover:bg-gray-200 active:scale-95 rounded-sm px-12 py-4 text-base shadow-xl">Get Started Free</Button>
+            <p className="text-[10px] text-gray-600 mt-4 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>No credit card &middot; Works in 25 languages</p>
           </motion.div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/[0.03] py-8">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-sm bg-[#3B82F6] flex items-center justify-center">
-              <span className="text-[7px] font-black text-black">B</span>
-            </div>
+            <div className="w-5 h-5 rounded-sm bg-[#3B82F6] flex items-center justify-center"><span className="text-[7px] font-black text-black">B</span></div>
             <span className="text-[10px] text-gray-600 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>BHAIYA AI</span>
           </div>
           <p className="text-[10px] text-gray-600 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>Built by Nishanth Revuri</p>
