@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 class ChatRequest(BaseModel):
     message: str
     mode: Optional[str] = None
+    voice: Optional[bool] = False
 
 class GoalCreate(BaseModel):
     title: str
@@ -263,7 +264,8 @@ RULES:
 - Use the user's name occasionally
 - If strict level is high, be more demanding and push harder
 - If humor level is high, add wit and banter
-- LANGUAGE: You MUST respond in {language}. The user prefers {language}. All your responses should be in {language}."""
+- LANGUAGE: You MUST respond in {language}. The user prefers {language}. All your responses should be in {language}.
+- VOICE MODE: If this is a voice conversation, keep responses to 2-3 sentences MAX. Be punchy and conversational. No lists, no bullet points, no long explanations. Talk like you're actually on a call."""
 
 @api_router.post("/chat")
 async def chat_endpoint(req: ChatRequest, request: Request):
@@ -289,6 +291,9 @@ async def chat_endpoint(req: ChatRequest, request: Request):
     memory_parts.append(f"User's name: {user_name}")
     memory_context = "\n".join(memory_parts)
     system_prompt = build_system_prompt(avatar, memory_context, mode)
+    # For voice calls, enforce short responses
+    if req.voice:
+        system_prompt += "\n\nYOU ARE ON A LIVE PHONE CALL. NOT TEXT. PHONE CALL.\n- Say maximum 2 SHORT sentences. 30 words max.\n- NO formatting. NO asterisks. NO bold. NO lists. NO numbering.\n- Sound like a real phone call. Quick and natural.\n- One thought only. One question max."
     session_id = f"bhaiya_{user_id}_{uuid.uuid4().hex[:8]}"
     # Build message history for context
     history = [{"role": "system", "content": system_prompt}]
@@ -307,6 +312,20 @@ async def chat_endpoint(req: ChatRequest, request: Request):
     except Exception as e:
         logger.error(f"Claude API error: {e}")
         raise HTTPException(status_code=500, detail="AI service error")
+    # Strip markdown for voice responses
+    import re
+    clean_text = response_text
+    if req.voice:
+        clean_text = re.sub(r'\*\*(.+?)\*\*', r'\1', clean_text)  # bold
+        clean_text = re.sub(r'\*(.+?)\*', r'\1', clean_text)  # italic
+        clean_text = re.sub(r'#{1,6}\s*', '', clean_text)  # headers
+        clean_text = re.sub(r'^\s*[-*]\s+', '', clean_text, flags=re.MULTILINE)  # bullets
+        clean_text = re.sub(r'^\s*\d+\.\s+', '', clean_text, flags=re.MULTILINE)  # numbered
+        clean_text = re.sub(r'\n{2,}', ' ', clean_text).strip()  # collapse newlines
+        # Truncate to ~3 sentences if still too long
+        sentences = re.split(r'(?<=[.!?])\s+', clean_text)
+        if len(sentences) > 3:
+            clean_text = ' '.join(sentences[:3])
     now = datetime.now(timezone.utc).isoformat()
     await db.chat_messages.insert_one({
         "id": str(uuid.uuid4()),
@@ -324,7 +343,7 @@ async def chat_endpoint(req: ChatRequest, request: Request):
         "mode": mode,
         "created_at": now
     })
-    return {"response": response_text, "mode": mode}
+    return {"response": clean_text, "mode": mode}
 
 @api_router.get("/chat/history")
 async def get_chat_history(request: Request, limit: int = 50):

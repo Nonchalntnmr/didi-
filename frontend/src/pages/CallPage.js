@@ -115,9 +115,13 @@ export default function CallPage() {
     recognition.lang = "en-US";
     recognition.maxAlternatives = 1;
 
+    let silenceTimer = null;
+    let finalText = "";
+
     recognition.onstart = () => {
       setIsListening(true);
       setTranscript("");
+      finalText = "";
     };
 
     recognition.onresult = (e) => {
@@ -128,30 +132,40 @@ export default function CallPage() {
         if (e.results[i].isFinal) final += t;
         else interim += t;
       }
-      setTranscript(final || interim);
+      const display = final || interim;
+      setTranscript(display);
+      if (final) finalText = final;
+
+      // Reset silence timer — wait for user to finish talking
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        if (finalText.trim().length > 1) {
+          try { recognition.stop(); } catch(e) {}
+        }
+      }, 1200); // Wait 1.2s of silence before processing
     };
 
     recognition.onend = () => {
+      clearTimeout(silenceTimer);
       setIsListening(false);
-      const currentTranscript = document.querySelector("[data-live-transcript]")?.textContent || "";
-      if (currentTranscript && currentTranscript.trim().length > 1) {
-        processUserSpeech(currentTranscript.trim());
+      if (finalText && finalText.trim().length > 1) {
+        processUserSpeech(finalText.trim());
       } else {
-        // No speech detected, restart listening
+        // No speech detected, wait then restart
         if (shouldListenRef.current && !isMutedRef.current) {
-          setTimeout(() => startListeningLoop(), 300);
+          setTimeout(() => startListeningLoop(), 800);
         }
       }
     };
 
     recognition.onerror = (e) => {
+      clearTimeout(silenceTimer);
       setIsListening(false);
       if (e.error !== "no-speech" && e.error !== "aborted") {
         console.error("Speech error:", e.error);
       }
-      // Restart on errors
       if (shouldListenRef.current && !isMutedRef.current) {
-        setTimeout(() => startListeningLoop(), 500);
+        setTimeout(() => startListeningLoop(), 1000);
       }
     };
 
@@ -176,7 +190,7 @@ export default function CallPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, voice: true }),
       });
 
       if (!res.ok) throw new Error("Chat API failed");
@@ -189,9 +203,9 @@ export default function CallPage() {
       // Speak the response
       await speakResponse(response);
 
-      // Resume listening after speaking
+      // Wait a beat before listening again — don't rush the user
       if (shouldListenRef.current && !isMutedRef.current) {
-        setTimeout(() => startListeningLoop(), 300);
+        setTimeout(() => startListeningLoop(), 1500);
       }
     } catch (err) {
       console.error("Chat error:", err);
@@ -209,7 +223,7 @@ export default function CallPage() {
       synthRef.current.cancel();
 
       const utt = new SpeechSynthesisUtterance(text);
-      utt.rate = 1.05;
+      utt.rate = 1.15;
       utt.pitch = 0.95;
       utt.volume = 1;
 
