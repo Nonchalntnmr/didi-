@@ -29,11 +29,11 @@ export default function ProgressCard() {
 
   const shareCard = async () => {
     const text = data
-      ? `Check out my progress on Bhaiya AI!\n\nStreak: ${data.streak} days\nGoals: ${data.completed_goals}/${data.total_goals}\nFocus: ${data.total_focus_minutes} min\nXP: ${data.total_xp}\n\n#BhaiyaAI #SelfImprovement`
+      ? `Check out my progress on Didi AI!\n\nStreak: ${data.streak} days\nGoals: ${data.completed_goals}/${data.total_goals}\nFocus: ${data.total_focus_minutes} min\nXP: ${data.total_xp}\n\n#DidiAI #AnushkaDidi`
       : "";
     if (navigator.share) {
       try {
-        await navigator.share({ title: "My Bhaiya AI Progress", text });
+        await navigator.share({ title: "My Didi AI Progress", text });
       } catch (err) { /* user cancelled */ }
     } else {
       navigator.clipboard.writeText(text);
@@ -119,9 +119,9 @@ export default function ProgressCard() {
                     <div className="w-5 h-5 rounded-sm bg-[#3B82F6] flex items-center justify-center">
                       <span className="text-[8px] font-bold text-black">B</span>
                     </div>
-                    <span className="text-[10px] font-mono text-gray-500" style={{ fontFamily: "JetBrains Mono, monospace" }}>BHAIYA AI</span>
+                    <span className="text-[10px] font-mono text-gray-500" style={{ fontFamily: "JetBrains Mono, monospace" }}>DIDI AI</span>
                   </div>
-                  <span className="text-[10px] font-mono text-gray-600" style={{ fontFamily: "JetBrains Mono, monospace" }}>bhaiya.ai</span>
+                  <span className="text-[10px] font-mono text-gray-600" style={{ fontFamily: "JetBrains Mono, monospace" }}>didi.ai</span>
                 </div>
               </div>
             </div>

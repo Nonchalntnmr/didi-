@@ -27,15 +27,15 @@ function useTypewriter(texts, speed = 60, pause = 2000) {
 }
 
 const demoMsgs = [
-  { role: "user", text: "I keep procrastinating on my coding project" },
-  { role: "ai", text: "Let's be real — you're not procrastinating, you're overwhelmed. Break it into 30-min blocks. What's the ONE smallest thing you can do right now?" },
-  { role: "user", text: "I guess set up the project folder structure" },
-  { role: "ai", text: "That's it. Do that in the next 15 minutes. Don't touch anything else. I'll check back. Go." },
+  { role: "user", text: "Didi, I don't understand this math problem" },
+  { role: "ai", text: "Show me which one! I bet we can figure it out together. What part is confusing you?" },
+  { role: "user", text: "I don't know how to do fractions" },
+  { role: "ai", text: "Okay! Think of a pizza. If you cut it into 4 slices and eat 1, you ate 1/4 of the pizza. That's a fraction! The bottom number is how many pieces total, the top is how many you have. Want to try one together?" },
 ];
 
 export default function LandingPage() {
   const [visibleMsgs, setVisibleMsgs] = useState([]);
-  const typed = useTypewriter(["studying for exams", "building discipline", "getting fit", "managing stress", "finding direction", "learning to code"], 65, 1800);
+  const typed = useTypewriter(["homework help", "feeling lonely", "learning new things", "building good habits", "making friends", "dreaming big"], 65, 1800);
 
   useEffect(() => {
     demoMsgs.forEach((msg, i) => {
@@ -58,8 +58,8 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full z-40 backdrop-blur-xl bg-[#050505]/70 border-b border-white/[0.03]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-sm bg-[#3B82F6] flex items-center justify-center"><Brain className="w-4 h-4 text-black" /></div>
-            <span className="font-bold text-base tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }} data-testid="brand-logo">BHAIYA</span>
+            <div className="w-8 h-8 rounded-full overflow-hidden"><img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Didi" className="w-full h-full object-cover" /></div>
+            <span className="font-bold text-base tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }} data-testid="brand-logo">DIDI</span>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })} className="text-xs text-gray-500 hover:text-white transition-colors hidden md:block">See it in action</button>
@@ -82,15 +82,15 @@ export default function LandingPage() {
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400" style={{ fontFamily: "JetBrains Mono, monospace" }}>Live &middot; 25 Languages</span>
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[0.92] mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>
-                Stop guessing.
+                Every child deserves
               </h1>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[0.92] mb-6">
-                <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #3B82F6 100%)", fontFamily: "Manrope, sans-serif" }}>Start improving.</span>
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #3B82F6 100%)", fontFamily: "Manrope, sans-serif" }}>an older sister.</span>
               </h1>
               <p className="text-sm md:text-base text-gray-400 max-w-md leading-relaxed mb-2">
-                Your AI mentor for <span className="text-white font-medium">{typed}<span className="animate-pulse text-[#3B82F6]">|</span></span>
+                Meet Anushka Didi — your AI big sister for <span className="text-white font-medium">{typed}<span className="animate-pulse text-[#3B82F6]">|</span></span>
               </p>
-              <p className="text-xs text-gray-500 max-w-md mb-8">Text, voice call, and FaceTime a mentor who remembers everything about you.</p>
+              <p className="text-xs text-gray-500 max-w-md mb-8">Text, voice call, and FaceTime a caring mentor who remembers you and believes in you.</p>
               <div className="flex flex-wrap items-center gap-3 mb-8">
                 <Button data-testid="hero-cta-btn" onClick={handleLogin} className="bg-[#3B82F6] text-white font-bold hover:bg-blue-500 active:scale-95 rounded-sm px-7 py-3 text-sm shadow-lg shadow-[#3B82F6]/25">
                   Start Free <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -129,8 +129,8 @@ export default function LandingPage() {
                   {/* Status bar */}
                   <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/[0.04]">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-sm bg-[#3B82F6] flex items-center justify-center"><span className="text-[6px] font-black text-black">B</span></div>
-                      <span className="text-[10px] font-bold">Bhaiya</span>
+                      <div className="w-5 h-5 rounded-full overflow-hidden"><img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Didi" className="w-full h-full object-cover" /></div>
+                      <span className="text-[10px] font-bold">Anushka Didi</span>
                     </div>
                     <span className="text-[8px] font-mono text-[#10B981]" style={{ fontFamily: "JetBrains Mono, monospace" }}>COACH MODE</span>
                   </div>
@@ -156,7 +156,7 @@ export default function LandingPage() {
 
                   {/* Input bar */}
                   <div className="px-4 py-3 border-t border-white/[0.04] flex items-center gap-2">
-                    <div className="flex-1 bg-[#161616] rounded-full px-4 py-2 text-[10px] text-gray-500">Talk to Bhaiya...</div>
+                    <div className="flex-1 bg-[#161616] rounded-full px-4 py-2 text-[10px] text-gray-500">Talk to Didi...</div>
                     <div className="w-7 h-7 rounded-full bg-[#3B82F6] flex items-center justify-center"><ArrowRight className="w-3 h-3 text-black" /></div>
                   </div>
                 </div>
@@ -210,9 +210,9 @@ export default function LandingPage() {
       <section id="demo" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#3B82F6] mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>How Bhaiya talks</p>
-            <h2 className="text-3xl md:text-4xl tracking-tighter font-bold mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>No corporate AI speak</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">Real conversations. Actual plans. Someone who remembers what you said last week.</p>
+            <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#3B82F6] mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>How Anushka Didi talks</p>
+            <h2 className="text-3xl md:text-4xl tracking-tighter font-bold mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>Like a real older sister</h2>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">Real conversations. Real care. Someone who remembers your name and asks how your day went.</p>
           </motion.div>
 
           {/* Bento feature grid */}
@@ -224,7 +224,7 @@ export default function LandingPage() {
               <div className="absolute top-0 right-0 w-48 h-48 bg-[#10B981]/[0.05] rounded-full blur-[60px] pointer-events-none" />
               <Phone className="w-8 h-8 text-[#10B981] mb-4" />
               <h3 className="text-xl font-bold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>FaceTime Calls</h3>
-              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">Your camera on. Bhaiya listens in real-time, responds with voice. Live captions. Like calling your smartest friend.</p>
+              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">Your camera on. Didi listens in real-time, responds with a warm voice. Live captions. Like FaceTiming your older sister.</p>
             </motion.div>
             {/* Large - Memory */}
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 }}
@@ -233,7 +233,7 @@ export default function LandingPage() {
               <div className="absolute top-0 right-0 w-48 h-48 bg-[#3B82F6]/[0.05] rounded-full blur-[60px] pointer-events-none" />
               <Brain className="w-8 h-8 text-[#3B82F6] mb-4" />
               <h3 className="text-xl font-bold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>Remembers Everything</h3>
-              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">"You said last week you wanted to wake up earlier — how's that going?" Bhaiya tracks your goals, habits, and struggles.</p>
+              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">"You told me yesterday you wanted to read more — did you finish that chapter?" Didi remembers your goals and checks in.</p>
             </motion.div>
             {/* Small cards */}
             {[
@@ -241,7 +241,7 @@ export default function LandingPage() {
               { icon: Target, title: "Routines & Plans", desc: "Study plans. Workout routines. Track daily.", color: "#10B981", bg: "#051a0f" },
               { icon: Zap, title: "7 AI Modes", desc: "Educator. Coach. Brutal Honesty. Auto-detect.", color: "#A78BFA", bg: "#0f051a" },
               { icon: Crosshair, title: "Focus Mode", desc: "Pomodoro timer. Deep work. Track hours.", color: "#EC4899", bg: "#1a0515" },
-              { icon: Star, title: "Bhaiya Wrapped", desc: "Monthly AI progress report. Shareable.", color: "#F59E0B", bg: "#1a1005" },
+              { icon: Star, title: "Didi Wrapped", desc: "Monthly progress report. Fun and shareable.", color: "#F59E0B", bg: "#1a1005" },
               { icon: Lock, title: "Safe & Private", desc: "No harmful advice. Escalates serious issues.", color: "#6B7280", bg: "#0A0A0A" },
             ].map((f, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 * i }}
@@ -264,7 +264,7 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <p className="text-xs font-mono uppercase tracking-[0.3em] text-gray-600 mb-3" style={{ fontFamily: "JetBrains Mono, monospace" }}>Intelligence System</p>
               <h2 className="text-3xl tracking-tighter font-bold mb-3" style={{ fontFamily: "Manrope, sans-serif" }}>One mentor,<br />seven modes</h2>
-              <p className="text-sm text-gray-400 leading-relaxed mb-6 max-w-sm">Auto-detects what you need. Or switch manually. Each mode changes how Bhaiya thinks and talks.</p>
+              <p className="text-sm text-gray-400 leading-relaxed mb-6 max-w-sm">Auto-detects what you need. Or switch manually. Each mode changes how Didi helps you.</p>
               <Button data-testid="modes-cta" onClick={handleLogin} className="bg-[#3B82F6] text-white font-bold hover:bg-blue-500 rounded-sm px-6 py-3 text-sm shadow-lg shadow-[#3B82F6]/20">Try All Modes</Button>
             </motion.div>
             <div className="space-y-2">
@@ -273,8 +273,8 @@ export default function LandingPage() {
                 { mode: "Coach", color: "#F59E0B", desc: "Builds discipline, creates routines" },
                 { mode: "Wellness", color: "#10B981", desc: "Food, sleep, habits, practical advice" },
                 { mode: "Listener", color: "#A78BFA", desc: "Emotional support, reflective talk" },
-                { mode: "Future You", color: "#60A5FA", desc: "Speaks as your successful future self" },
-                { mode: "Brutal Honesty", color: "#EF4444", desc: "Direct, no-BS, tough love" },
+                { mode: "Dream Mode", color: "#60A5FA", desc: "Imagine your amazing future" },
+                { mode: "Real Talk", color: "#EF4444", desc: "Honest, kind, caring truth" },
               ].map((m, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
                   className="flex items-center gap-4 p-3 rounded-sm bg-[#0A0A0A] border border-white/[0.04] hover:border-white/10 transition-all group">
@@ -291,8 +291,8 @@ export default function LandingPage() {
       <section className="py-28 border-t border-white/[0.03]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>Your move.</h2>
-            <p className="text-gray-400 mb-8 text-sm">Stop scrolling. Start building the life you actually want.</p>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4" style={{ fontFamily: "Manrope, sans-serif" }}>Every child matters.</h2>
+            <p className="text-gray-400 mb-8 text-sm">Give them a Didi who listens, teaches, and never gives up on them.</p>
             <Button data-testid="cta-bottom-btn" onClick={handleLogin} className="bg-white text-black font-bold hover:bg-gray-200 active:scale-95 rounded-sm px-12 py-4 text-base shadow-xl">Get Started Free</Button>
             <p className="text-[10px] text-gray-600 mt-4 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>No credit card &middot; Works in 25 languages</p>
           </motion.div>
@@ -302,8 +302,8 @@ export default function LandingPage() {
       <footer className="border-t border-white/[0.03] py-8">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-sm bg-[#3B82F6] flex items-center justify-center"><span className="text-[7px] font-black text-black">B</span></div>
-            <span className="text-[10px] text-gray-600 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>BHAIYA AI</span>
+            <div className="w-5 h-5 rounded-full overflow-hidden"><img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="" className="w-full h-full object-cover" /></div>
+            <span className="text-[10px] text-gray-600 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>ANUSHKA DIDI AI</span>
           </div>
           <p className="text-[10px] text-gray-600 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>Built by Nishanth Revuri</p>
         </div>

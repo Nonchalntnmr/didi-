@@ -114,7 +114,7 @@ export default function AvatarCustomize() {
             <Button data-testid="customize-back-btn" variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-white">
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <p className="text-sm font-semibold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Customize Bhaiya</p>
+            <p className="text-sm font-semibold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Customize Didi</p>
           </div>
           <Button
             data-testid="save-avatar-btn"
@@ -136,7 +136,7 @@ export default function AvatarCustomize() {
                 <User className="w-12 h-12 text-[#3B82F6]/60" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#3B82F6]/10 to-transparent" />
               </div>
-              <p className="text-lg font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya</p>
+              <p className="text-lg font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
               <div className="text-[10px] font-mono text-gray-500 space-y-1 mt-2" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                 <p>FACE: {config.face_preset}</p>
                 <p>SKIN: {config.skin_tone}</p>
@@ -234,7 +234,7 @@ export default function AvatarCustomize() {
             {/* Language */}
             <Card className="bg-[#0A0A0A] border border-[#3B82F6]/10 rounded-sm p-6">
               <h3 className="text-base font-semibold tracking-tight mb-2" style={{ fontFamily: "Manrope, sans-serif" }}>Language</h3>
-              <p className="text-xs text-gray-500 mb-4">Bhaiya will respond in your chosen language</p>
+              <p className="text-xs text-gray-500 mb-4">Didi will respond in your chosen language</p>
               <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2">
                 {languages.map((lang) => (
                   <button

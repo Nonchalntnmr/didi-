@@ -87,8 +87,8 @@ export default function Dashboard() {
       <nav className="sticky top-0 z-40 backdrop-blur-xl bg-[#050505]/80 border-b border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-sm bg-[#3B82F6] flex items-center justify-center"><span className="text-[10px] font-black text-black">B</span></div>
-            <span className="font-bold text-sm tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>BHAIYA</span>
+            <div className="w-7 h-7 rounded-full overflow-hidden"><img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Didi" className="w-full h-full object-cover" /></div>
+            <span className="font-bold text-sm tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>DIDI</span>
           </div>
           <div className="flex items-center gap-2">
             <Button data-testid="wrapped-nav" variant="ghost" size="sm" onClick={() => navigate("/wrapped")} className="text-[#F59E0B] hover:text-yellow-300 text-xs gap-1 hidden md:flex"><Star className="w-3 h-3" /> Wrapped</Button>
@@ -137,7 +137,7 @@ export default function Dashboard() {
               <input
                 data-testid="quick-chat-input"
                 className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-sm px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-[#3B82F6]/50 focus:outline-none transition-colors"
-                placeholder="Quick message to Bhaiya..."
+                placeholder="Ask Didi anything..."
                 value={quickMsg}
                 onChange={(e) => setQuickMsg(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && quickChat()}
@@ -162,7 +162,7 @@ export default function Dashboard() {
                 <Phone className="w-5 h-5 text-[#10B981]" />
               </div>
               <div>
-                <h3 className="text-base font-bold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>FaceTime Bhaiya</h3>
+                <h3 className="text-base font-bold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>FaceTime Didi</h3>
                 <p className="text-[10px] text-gray-500">Camera on, voice conversation, live captions</p>
               </div>
             </div>
@@ -179,8 +179,8 @@ export default function Dashboard() {
             { icon: Crosshair, label: "Focus", color: "#EF4444", path: "/focus", id: "action-focus" },
             { icon: Trophy, label: "Challenges", color: "#A78BFA", path: "/challenges", id: "action-challenges" },
             { icon: List, label: "Routines", color: "#EC4899", path: "/routines", id: "action-routines" },
-            { icon: Skull, label: "Brutal", color: "#EF4444", path: "/chat", mode: "brutal_honesty", id: "action-brutal" },
-            { icon: Rocket, label: "Future", color: "#60A5FA", path: "/chat", mode: "future_you", id: "action-future" },
+            { icon: Skull, label: "Real Talk", color: "#EF4444", path: "/chat", mode: "real_talk", id: "action-brutal" },
+            { icon: Rocket, label: "Dreams", color: "#60A5FA", path: "/chat", mode: "future_you", id: "action-future" },
           ].map((item, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.03 }}>
               <button
@@ -199,7 +199,7 @@ export default function Dashboard() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[
             { icon: TrendingUp, label: "Weekly Summary", path: "/summary", id: "quick-summary" },
-            { icon: Star, label: "Bhaiya Wrapped", path: "/wrapped", color: "#F59E0B", id: "quick-wrapped" },
+            { icon: Star, label: "Didi Wrapped", path: "/wrapped", color: "#F59E0B", id: "quick-wrapped" },
             { icon: Share2, label: "Progress Card", path: "/progress", id: "quick-progress" },
           ].map((item, i) => (
             <button key={i} data-testid={item.id} onClick={() => navigate(item.path)}

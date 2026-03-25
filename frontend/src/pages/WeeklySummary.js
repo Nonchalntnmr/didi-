@@ -121,7 +121,7 @@ export default function WeeklySummary() {
               <Card className="bg-[#0A0A0A] border border-[#3B82F6]/10 rounded-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <TrendingUp className="w-4 h-4 text-[#3B82F6]" />
-                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-gray-500" style={{ fontFamily: "JetBrains Mono, monospace" }}>Bhaiya's Take</p>
+                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-gray-500" style={{ fontFamily: "JetBrains Mono, monospace" }}>Didi's Take</p>
                 </div>
                 <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap" data-testid="summary-ai-text">{summary.ai_summary}</p>
               </Card>
@@ -143,7 +143,7 @@ export default function WeeklySummary() {
         ) : (
           <div className="text-center py-16">
             <TrendingUp className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-            <p className="text-sm text-gray-500">No data available yet. Keep using Bhaiya to see your weekly summary!</p>
+            <p className="text-sm text-gray-500">No data available yet. Keep talking to Didi to see your weekly summary!</p>
           </div>
         )}
       </div>

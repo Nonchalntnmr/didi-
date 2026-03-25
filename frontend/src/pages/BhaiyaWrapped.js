@@ -46,9 +46,9 @@ export default function BhaiyaWrapped() {
   };
 
   const shareWrapped = () => {
-    const text = data ? `My Bhaiya AI Wrapped:\n${data.month_messages} messages | ${data.completed_goals} goals | ${data.focus_minutes_month}m focus | ${data.total_xp} XP\nStreak: ${data.streak} days\n\n#BhaiyaAI #BhaiyaWrapped` : "";
+    const text = data ? `My Didi AI Wrapped:\n${data.month_messages} messages | ${data.completed_goals} goals | ${data.focus_minutes_month}m focus | ${data.total_xp} XP\nStreak: ${data.streak} days\n\n#DidiAI #AnushkaDidi` : "";
     if (navigator.share) {
-      navigator.share({ title: "My Bhaiya Wrapped", text }).catch(() => {});
+      navigator.share({ title: "My Didi Wrapped", text }).catch(() => {});
     } else {
       navigator.clipboard.writeText(text);
     }
@@ -87,7 +87,7 @@ export default function BhaiyaWrapped() {
       content: (
         <div className="text-center">
           <Brain className="w-10 h-10 text-[#10B981] mx-auto mb-4" />
-          <p className="text-xs font-mono text-[#10B981] tracking-[0.3em] uppercase mb-4" style={{ fontFamily: "JetBrains Mono, monospace" }}>Your Bhaiya Personality</p>
+          <p className="text-xs font-mono text-[#10B981] tracking-[0.3em] uppercase mb-4" style={{ fontFamily: "JetBrains Mono, monospace" }}>Your Didi Personality</p>
           <h3 className="text-2xl font-bold tracking-tight mb-6" style={{ fontFamily: "Manrope, sans-serif" }}>You're a {data.top_mode === "educator" ? "Knowledge Seeker" : data.top_mode === "coach" ? "Performance Machine" : data.top_mode === "wellness" ? "Wellness Warrior" : data.top_mode === "listener" ? "Deep Thinker" : "Versatile Player"}</h3>
           <div className="space-y-2 max-w-sm mx-auto">
             {Object.entries(data.mode_breakdown || {}).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([mode, count], i) => {
@@ -146,7 +146,7 @@ export default function BhaiyaWrapped() {
       content: (
         <div className="text-center max-w-md mx-auto">
           <Trophy className="w-10 h-10 text-[#3B82F6] mx-auto mb-4" />
-          <p className="text-xs font-mono text-[#3B82F6] tracking-[0.3em] uppercase mb-6" style={{ fontFamily: "JetBrains Mono, monospace" }}>Bhaiya's Take</p>
+          <p className="text-xs font-mono text-[#3B82F6] tracking-[0.3em] uppercase mb-6" style={{ fontFamily: "JetBrains Mono, monospace" }}>Didi's Take</p>
           <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap" data-testid="wrapped-ai-text">{data.ai_wrapped}</p>
         </div>
       )
@@ -161,7 +161,7 @@ export default function BhaiyaWrapped() {
             <Button data-testid="wrapped-back-btn" variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-white">
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <span className="font-semibold text-sm tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya Wrapped</span>
+            <span className="font-semibold text-sm tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Didi Wrapped</span>
           </div>
           {data && (
             <Button data-testid="share-wrapped-btn" onClick={shareWrapped} variant="ghost" size="sm" className="text-[#3B82F6] hover:text-blue-400 text-xs gap-1">
@@ -219,7 +219,7 @@ export default function BhaiyaWrapped() {
         </div>
       ) : (
         <div className="text-center py-20">
-          <p className="text-gray-500 text-sm">Not enough data yet. Keep using Bhaiya to generate your Wrapped!</p>
+          <p className="text-gray-500 text-sm">Not enough data yet. Keep talking to Didi to generate your Wrapped!</p>
         </div>
       )}
     </div>

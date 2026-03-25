@@ -97,7 +97,7 @@ export default function CallPage() {
       audioStreamRef.current = audioStream;
 
       // 3. Create Bhaiya voice session (with personality + voice)
-      setStatusMsg("Calling Bhaiya...");
+      setStatusMsg("Calling Didi...");
       const sessionRes = await fetch(`${API}/voice/session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -141,7 +141,7 @@ export default function CallPage() {
       dcRef.current = dc;
 
       dc.onopen = () => {
-        console.log("Data channel open — Bhaiya is ready");
+        console.log("Data channel open — Didi is ready");
       };
 
       dc.onmessage = (event) => {
@@ -262,7 +262,7 @@ export default function CallPage() {
             className="w-36 h-36 md:w-48 md:h-48 rounded-full border-[3px] flex items-center justify-center relative"
             style={{ background: "radial-gradient(circle at 40% 35%, #111827, #050505)" }}
           >
-            <span className="text-5xl md:text-6xl font-bold text-[#3B82F6]" style={{ fontFamily: "Manrope, sans-serif" }}>B</span>
+            <img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Anushka Didi" className="w-full h-full object-cover rounded-full" />
             {isAISpeaking && (
               <>
                 <motion.div animate={{ scale: [1, 1.5], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} className="absolute inset-0 rounded-full border border-[#3B82F6]/30" />
@@ -274,7 +274,7 @@ export default function CallPage() {
             )}
           </motion.div>
 
-          <p className="text-lg font-bold mt-5 tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya</p>
+          <p className="text-lg font-bold mt-5 tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
           {callStatus === "active" && (
             <p className="text-xs font-mono mt-1" style={{ fontFamily: "JetBrains Mono, monospace", color: isAISpeaking ? "#3B82F6" : isUserSpeaking ? "#10B981" : "#666" }}>
               {isAISpeaking ? "Speaking..." : isUserSpeaking ? "Listening..." : fmt(callDuration)}
@@ -304,7 +304,7 @@ export default function CallPage() {
               )}
               {aiText && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-                  <p className="text-[10px] text-[#3B82F6] font-mono uppercase tracking-wider mb-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>Bhaiya</p>
+                  <p className="text-[10px] text-[#3B82F6] font-mono uppercase tracking-wider mb-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>Didi</p>
                   <p className="text-sm text-white/50 leading-relaxed">{aiText.length > 300 ? "..." + aiText.slice(-300) : aiText}</p>
                 </motion.div>
               )}
@@ -340,11 +340,11 @@ export default function CallPage() {
       {callStatus === "idle" && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#050505]">
           <div className="text-center">
-            <div className="w-32 h-32 rounded-full bg-[#0A0A0A] border-2 border-white/10 flex items-center justify-center mx-auto mb-6">
-              <span className="text-5xl font-bold text-[#3B82F6]" style={{ fontFamily: "Manrope, sans-serif" }}>B</span>
+            <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white/10 mx-auto mb-6">
+              <img src="https://customer-assets.emergentagent.com/job_mentor-live-1/artifacts/h9sfa3l8_Attachment-1.jpeg" alt="Anushka Didi" className="w-full h-full object-cover" />
             </div>
-            <p className="text-xl font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya</p>
-            <p className="text-xs text-gray-500 mb-8">AI Voice &middot; Human-like conversation</p>
+            <p className="text-xl font-bold tracking-tight mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
+            <p className="text-xs text-gray-500 mb-8">AI Voice &middot; Your caring older sister</p>
             {statusMsg && <p className="text-xs text-red-400 mb-4">{statusMsg}</p>}
             <button
               data-testid="start-call-btn"
@@ -369,7 +369,7 @@ export default function CallPage() {
                 className="w-24 h-24 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center mx-auto mb-6">
                 <Phone className="w-10 h-10 text-[#10B981]" />
               </motion.div>
-              <p className="text-lg font-bold mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Calling Bhaiya...</p>
+              <p className="text-lg font-bold mb-1" style={{ fontFamily: "Manrope, sans-serif" }}>Calling Didi...</p>
               <p className="text-xs text-gray-500 font-mono" style={{ fontFamily: "JetBrains Mono, monospace" }}>{statusMsg || "Connecting"}</p>
             </div>
           </motion.div>

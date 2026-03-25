@@ -9,13 +9,13 @@ import { useAuth } from "../contexts/AuthContext";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const modeConfig = {
-  educator: { icon: BookOpen, label: "Educator", color: "#3B82F6" },
-  coach: { icon: Flame, label: "Coach", color: "#F59E0B" },
-  wellness: { icon: Heart, label: "Wellness", color: "#10B981" },
+  educator: { icon: BookOpen, label: "Teacher", color: "#3B82F6" },
+  coach: { icon: Flame, label: "Cheerleader", color: "#F59E0B" },
+  wellness: { icon: Heart, label: "Care", color: "#10B981" },
   listener: { icon: Headphones, label: "Listener", color: "#A78BFA" },
   general: { icon: Sparkles, label: "General", color: "#A1A1AA" },
-  future_you: { icon: Rocket, label: "Future You", color: "#3B82F6" },
-  brutal_honesty: { icon: Skull, label: "Brutal Honesty", color: "#EF4444" },
+  future_you: { icon: Rocket, label: "Dreams", color: "#3B82F6" },
+  real_talk: { icon: Skull, label: "Real Talk", color: "#EF4444" },
 };
 
 export default function ChatPage() {
@@ -124,7 +124,7 @@ export default function ChatPage() {
                 <ModeIcon className="w-4 h-4" style={{ color: modeConfig[currentMode]?.color }} />
               </div>
               <div>
-                <p className="text-sm font-semibold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Bhaiya</p>
+                <p className="text-sm font-semibold tracking-tight" style={{ fontFamily: "Manrope, sans-serif" }}>Anushka Didi</p>
                 <p className="text-[10px] font-mono tracking-wider text-gray-500" style={{ fontFamily: "JetBrains Mono, monospace" }} data-testid="current-mode">
                   {modeConfig[currentMode]?.label} MODE
                 </p>
@@ -172,7 +172,7 @@ export default function ChatPage() {
                 What's on your mind?
               </h3>
               <p className="text-sm text-gray-500 max-w-sm">
-                Talk to Bhaiya about anything - studying, goals, habits, or just need someone to listen.
+                Talk to Didi about anything — homework, how you're feeling, your dreams, or just to chat.
               </p>
             </div>
           )}
@@ -244,7 +244,7 @@ export default function ChatPage() {
               ref={inputRef}
               data-testid="chat-input"
               className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-sm px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:border-[#3B82F6] focus:outline-none transition-colors"
-              placeholder="Talk to Bhaiya..."
+              placeholder="Talk to Didi..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
