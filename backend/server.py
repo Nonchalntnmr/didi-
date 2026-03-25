@@ -35,6 +35,36 @@ realtime_router = APIRouter()
 OpenAIChatRealtime.register_openai_realtime_router(realtime_router, realtime_chat)
 app.include_router(realtime_router, prefix="/api/v1")
 
+# Custom Bhaiya Voice Session endpoint (with personality)
+import aiohttp
+@api_router.post("/voice/session")
+async def create_bhaiya_voice_session():
+    bhaiya_instructions = """You are Bhaiya — a supportive, direct older brother and AI mentor for teens and young adults. You talk like a real person on a phone call. You are calm, confident, slightly witty. Never robotic. Never generic. Keep responses conversational and brief — you're on a voice call, not writing an essay. Ask questions. Be engaging. Use the person's name if they tell you. Push them to be better but always have their back. If they're struggling, listen first. If they're slacking, call it out with love. You are NOT a chatbot. You are their mentor, coach, and friend."""
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            "https://api.openai.com/v1/realtime/sessions",
+            headers={
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-4o-realtime-preview-2024-12-17",
+                "voice": "ash",
+                "instructions": bhaiya_instructions,
+                "turn_detection": {
+                    "type": "server_vad",
+                    "threshold": 0.5,
+                    "prefix_padding_ms": 300,
+                    "silence_duration_ms": 800,
+                },
+                "input_audio_transcription": {
+                    "model": "whisper-1"
+                },
+            }
+        ) as resp:
+            data = await resp.json()
+            return data
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
