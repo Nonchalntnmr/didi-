@@ -14,6 +14,7 @@ import RoutinesPage from "./pages/RoutinesPage";
 import WeeklySummary from "./pages/WeeklySummary";
 import ProgressCard from "./pages/ProgressCard";
 import BhaiyaWrapped from "./pages/BhaiyaWrapped";
+import Onboarding from "./pages/Onboarding";
 
 function AppRouter() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function AppRouter() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
       <Route path="/call" element={<ProtectedRoute><CallPage /></ProtectedRoute>} />
       <Route path="/customize" element={<ProtectedRoute><AvatarCustomize /></ProtectedRoute>} />

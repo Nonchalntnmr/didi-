@@ -188,6 +188,10 @@ async def exchange_session(request: Request, response: Response):
             "email": data["email"],
             "name": data["name"],
             "picture": data["picture"],
+            "onboarding_completed": False,
+            "nickname": "",
+            "interests": [],
+            "age_group": "",
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         await db.avatar_configs.insert_one({
@@ -229,6 +233,26 @@ async def logout(request: Request, response: Response):
         await db.user_sessions.delete_many({"session_token": session_token})
     response.delete_cookie(key="session_token", path="/", secure=True, samesite="none")
     return {"message": "Logged out"}
+
+# ─── ONBOARDING ───
+
+class OnboardingData(BaseModel):
+    nickname: Optional[str] = ""
+    age_group: Optional[str] = ""
+    interests: Optional[List[str]] = []
+
+@api_router.post("/onboarding/complete")
+async def complete_onboarding(data: OnboardingData, request: Request):
+    user = await get_current_user(request)
+    update = {
+        "onboarding_completed": True,
+        "nickname": data.nickname,
+        "age_group": data.age_group,
+        "interests": data.interests,
+    }
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return updated
 
 # ─── CHAT ENDPOINT ───
 

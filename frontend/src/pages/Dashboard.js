@@ -25,6 +25,13 @@ export default function Dashboard() {
   const [quickMsg, setQuickMsg] = useState("");
   const [quote] = useState(quotes[Math.floor(Math.random() * quotes.length)]);
 
+  // Redirect new users to onboarding
+  useEffect(() => {
+    if (user && user.onboarding_completed === false) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [user, navigate]);
+
   useEffect(() => { fetchData(); }, []);
   const fetchData = async () => {
     try {

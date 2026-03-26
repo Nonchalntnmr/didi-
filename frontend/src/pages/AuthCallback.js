@@ -32,7 +32,9 @@ export default function AuthCallback() {
         if (!res.ok) throw new Error("Auth failed");
         const userData = await res.json();
         setUser(userData);
-        navigate("/dashboard", { replace: true, state: { user: userData } });
+        // New users go to onboarding, existing users to dashboard
+        const dest = userData.onboarding_completed === false ? "/onboarding" : "/dashboard";
+        navigate(dest, { replace: true, state: { user: userData } });
       } catch (err) {
         console.error("Auth callback error:", err);
         navigate("/", { replace: true });
@@ -41,10 +43,10 @@ export default function AuthCallback() {
   }, [navigate, setUser]);
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+    <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-8 h-8 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-mono text-gray-500 tracking-widest uppercase">Authenticating</p>
+        <p className="text-sm font-mono text-gray-400 tracking-widest uppercase">Signing in...</p>
       </div>
     </div>
   );
