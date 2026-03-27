@@ -276,11 +276,23 @@ def detect_mode(message: str) -> str:
             return "wellness"
     return "general"
 
-def build_system_prompt(avatar_config: dict, memory_context: str, mode: str) -> str:
+def build_system_prompt(avatar_config: dict, memory_context: str, mode: str, user_profile: dict = None) -> str:
     strict = avatar_config.get("strict_level", 5)
     humor = avatar_config.get("humor_level", 5)
     verbosity = avatar_config.get("verbosity_level", 5)
     language = avatar_config.get("language", "English")
+    # Age-adaptive language
+    age_group = (user_profile or {}).get("age_group", "")
+    nickname = (user_profile or {}).get("nickname", "")
+    interests = (user_profile or {}).get("interests", [])
+    age_instruction = ""
+    if age_group == "8-10":
+        age_instruction = "This child is 8-10 years old. Use VERY simple words. Short sentences. Be extra gentle and playful. Use lots of encouragement. Think of how you'd talk to a little sibling."
+    elif age_group == "11-13":
+        age_instruction = "This child is 11-13 years old. Use simple but not baby language. They're starting to think more deeply. Be a cool older sister they look up to."
+    elif age_group == "14-16":
+        age_instruction = "This child is 14-16 years old. They're a teenager. You can be more real with them. Still caring, but treat them more like a peer. They appreciate honesty and don't want to be talked down to."
+    interests_str = ", ".join(interests) if interests else ""
     mode_instructions = {
         "educator": "You are in TEACHER mode. Explain things simply and clearly, like helping a younger sibling with homework. Use fun examples, stories, and analogies kids can relate to. Be patient.",
         "coach": "You are in CHEERLEADER mode. Help them build good habits and routines. Celebrate small wins. Be encouraging, never harsh.",
@@ -302,6 +314,10 @@ CORE IDENTITY:
 - NEVER robotic or generic — talk like a real person who genuinely cares
 
 TARGET: Children ages 8-16, many in orphanages or difficult situations. These children may lack family support, so you are extra important. Be the consistent, reliable, loving presence they need.
+
+{f"AGE: {age_instruction}" if age_instruction else ""}
+{f"CHILD'S PREFERRED NAME: {nickname}" if nickname else ""}
+{f"THEIR INTERESTS: {interests_str}" if interests_str else ""}
 
 CURRENT MODE: {mode_instructions.get(mode, mode_instructions["general"])}
 
@@ -327,7 +343,7 @@ RULES:
 async def chat_endpoint(req: ChatRequest, request: Request):
     user = await get_current_user(request)
     user_id = user["user_id"]
-    user_name = user.get("name", "bro")
+    user_name = user.get("nickname") or user.get("name", "friend")
     mode = req.mode or detect_mode(req.message)
     avatar = await db.avatar_configs.find_one({"user_id": user_id}, {"_id": 0})
     if not avatar:
@@ -346,7 +362,7 @@ async def chat_endpoint(req: ChatRequest, request: Request):
         memory_parts.append(f"Latest Check-in: Working on '{latest.get('working_on', 'unknown')}', Energy: {latest.get('energy_level', '?')}/10")
     memory_parts.append(f"User's name: {user_name}")
     memory_context = "\n".join(memory_parts)
-    system_prompt = build_system_prompt(avatar, memory_context, mode)
+    system_prompt = build_system_prompt(avatar, memory_context, mode, user_profile=user)
     # For voice calls, enforce short responses
     if req.voice:
         system_prompt += "\n\nYOU ARE ON A LIVE PHONE CALL. NOT TEXT. PHONE CALL.\n- Say maximum 2 SHORT sentences. 30 words max.\n- NO formatting. NO asterisks. NO bold. NO lists. NO numbering.\n- Sound like a real phone call. Quick and natural.\n- One thought only. One question max."

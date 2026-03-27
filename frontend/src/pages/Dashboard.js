@@ -44,7 +44,23 @@ export default function Dashboard() {
   const toggleGoal = async (id, done) => { await fetch(`${API}/goals/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ completed: !done }) }); fetchData(); };
   const quickChat = () => { if (quickMsg.trim()) navigate("/chat", { state: { initialMsg: quickMsg } }); };
   const moods = ["sad", "tired", "okay", "happy", "excited"];
-  const firstName = user?.name?.split(" ")[0] || "there";
+  const firstName = user?.nickname || user?.name?.split(" ")[0] || "there";
+
+  // Personalize action grid based on user interests
+  const allActions = [
+    { icon: BookOpen, label: "Study", color: "#3B82F6", path: "/chat", mode: "educator", id: "action-study", interest: "study" },
+    { icon: Heart, label: "Health", color: "#10B981", path: "/chat", mode: "wellness", id: "action-health", interest: "health" },
+    { icon: MessageSquare, label: "Talk", color: "#6B7280", path: "/chat", mode: "general", id: "action-talk", interest: "talk" },
+    { icon: Crosshair, label: "Focus", color: "#EF4444", path: "/focus", id: "action-focus", interest: "focus" },
+    { icon: Trophy, label: "Challenges", color: "#A78BFA", path: "/challenges", id: "action-challenges", interest: "challenges" },
+    { icon: List, label: "Routines", color: "#EC4899", path: "/routines", id: "action-routines" },
+    { icon: Sparkles, label: "Real Talk", color: "#F59E0B", path: "/chat", mode: "real_talk", id: "action-brutal" },
+    { icon: Rocket, label: "Dreams", color: "#60A5FA", path: "/chat", mode: "future_you", id: "action-future", interest: "dreams" },
+  ];
+  const userInterests = user?.interests || [];
+  const sortedActions = userInterests.length > 0
+    ? [...allActions.filter(a => userInterests.includes(a.interest)), ...allActions.filter(a => !userInterests.includes(a.interest))]
+    : allActions;
 
   return (
     <div className="min-h-screen bg-[#FFFBF5] text-[#1e293b]">
@@ -114,24 +130,20 @@ export default function Dashboard() {
 
         {/* Action grid */}
         <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-          {[
-            { icon: BookOpen, label: "Study", color: "#3B82F6", path: "/chat", mode: "educator", id: "action-study" },
-            { icon: Heart, label: "Health", color: "#10B981", path: "/chat", mode: "wellness", id: "action-health" },
-            { icon: MessageSquare, label: "Talk", color: "#6B7280", path: "/chat", mode: "general", id: "action-talk" },
-            { icon: Crosshair, label: "Focus", color: "#EF4444", path: "/focus", id: "action-focus" },
-            { icon: Trophy, label: "Challenges", color: "#A78BFA", path: "/challenges", id: "action-challenges" },
-            { icon: List, label: "Routines", color: "#EC4899", path: "/routines", id: "action-routines" },
-            { icon: Sparkles, label: "Real Talk", color: "#F59E0B", path: "/chat", mode: "real_talk", id: "action-brutal" },
-            { icon: Rocket, label: "Dreams", color: "#60A5FA", path: "/chat", mode: "future_you", id: "action-future" },
-          ].map((item, i) => (
+          {sortedActions.map((item, i) => {
+            const isUserInterest = userInterests.includes(item.interest);
+            return (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.03 }}>
               <button data-testid={item.id} onClick={() => navigate(item.path, { state: { mode: item.mode } })}
-                className="w-full flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md hover:shadow-gray-100/50 transition-all group active:scale-95">
+                className={`w-full flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all group active:scale-95 ${
+                  isUserInterest ? "bg-white border-blue-100 shadow-md shadow-blue-50 ring-1 ring-blue-100" : "bg-white border-gray-100 hover:border-gray-200 hover:shadow-md hover:shadow-gray-100/50"
+                }`}>
                 <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform" style={{ color: item.color }} />
                 <span className="text-[10px] text-gray-500 group-hover:text-[#1e293b] transition-colors font-semibold">{item.label}</span>
               </button>
             </motion.div>
-          ))}
+          );
+          })}
         </div>
 
         {/* Quick links */}
